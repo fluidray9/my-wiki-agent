@@ -5,26 +5,26 @@ description: "将 PDF、arXiv 或其他格式文件转换为 Markdown，支持�
 
 # Wiki File Convert
 
-文件转换 skill，调用 `tools/pdf2md.py` 或 `tools/file_to_md.py`。
+文件转换 skill，调用 `scripts/pdf2md.py` 或 `scripts/file_to_md.py`。
 
 ## 调用
 
 ```bash
 # arXiv 论文
-python tools/pdf2md.py 2401.12345
-python tools/pdf2md.py https://arxiv.org/abs/2401.12345
+python scripts/pdf2md.py 2401.12345
+python scripts/pdf2md.py https://arxiv.org/abs/2401.12345
 
 # 本地 PDF
-python tools/pdf2md.py paper.pdf
-python tools/pdf2md.py paper.pdf --backend marker    # 复杂布局
-python tools/pdf2md.py paper.pdf --backend pymupdf4llm  # 快速
+python scripts/pdf2md.py paper.pdf
+python scripts/pdf2md.py paper.pdf --backend marker    # 复杂布局
+python scripts/pdf2md.py paper.pdf --backend pymupdf4llm  # 快速
 
 # 指定输出路径
-python tools/pdf2md.py paper.pdf -o raw/papers/my-paper.md
+python scripts/pdf2md.py paper.pdf -o raw/papers/my-paper.md
 
 # 目录批量转换（使用 file_to_md.py）
-python tools/file_to_md.py --input_dir raw/articles/
-python tools/file_to_md.py --input_dir raw/articles/ --delete_source  # 转换后删除原文件
+python scripts/file_to_md.py --input_dir raw/articles/
+python scripts/file_to_md.py --input_dir raw/articles/ --delete_source  # 转换后删除原文件
 ```
 
 ## 支持的后端

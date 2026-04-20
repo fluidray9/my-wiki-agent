@@ -5,15 +5,15 @@ description: "检测 wiki source 页面是否落后于原始文档，通过哈�
 
 # Wiki Refresh
 
-刷新过时页面 skill，调用 `tools/refresh.py`。
+刷新过时页面 skill，调用 `scripts/refresh.py`。
 
 ## 调用
 
 ```bash
-python tools/refresh.py                     # 只刷新变化的 source
-python tools/refresh.py --force             # 强制刷新所有 source
-python tools/refresh.py --page sources/X    # 刷新指定页面
-python tools/refresh.py --dry-run            # 只列出需要刷新的页面
+python scripts/refresh.py                     # 只刷新变化的 source
+python scripts/refresh.py --force             # 强制刷新所有 source
+python scripts/refresh.py --page sources/X    # 刷新指定页面
+python scripts/refresh.py --dry-run            # 只列出需要刷新的页面
 ```
 
 ## 工作流程

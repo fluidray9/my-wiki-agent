@@ -5,14 +5,14 @@ description: "从 wiki 中检索信息并综合回答，支持保存为 synthesi
 
 # Wiki Query
 
-查询 wiki skill，调用 `tools/query.py`。
+查询 wiki skill，调用 `scripts/query.py`。
 
 ## 调用
 
 ```bash
-python tools/query.py "问题内容"
-python tools/query.py "问题内容" --save           # 保存到 synthesis
-python tools/query.py "问题内容" --save synthesis/my-analysis.md  # 保存到指定路径
+python scripts/query.py "问题内容"
+python scripts/query.py "问题内容" --save           # 保存到 synthesis
+python scripts/query.py "问题内容" --save synthesis/my-analysis.md  # 保存到指定路径
 ```
 
 ## 工作流程

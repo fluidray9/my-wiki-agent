@@ -13,19 +13,19 @@ description: "执行 wiki 全面体检，依次调用 health/lint/heal/refresh �
    - 空文件/残缺文件
    - index 同步
    - log 覆盖
-2. **wiki-lint** — 语义检查（如 health 通过）
+2. **wiki-fix（lint）** — 语义检查（如 health 通过）
    - 孤立页面
    - 断链
    - 矛盾
    - 缺失 entity
    - 数据空白
-3. **wiki-heal** — 自动修复（如发现缺失 entity）
+3. **wiki-fix（heal）** — 自动修复（如发现缺失 entity）
 4. **wiki-refresh** — 检查过时 source（可选）
 5. **汇总报告** — 整理所有检查结果
 
 ## 顺序说明
 
-- health 必须在 lint 之前（lint 检查语义，结构有问题则跳过）
+- health 必须在 fix 之前（lint 检查语义，结构有问题则跳过）
 - heal 在 lint 之后（lint 发现缺失 entity，heal 修复）
 - refresh 可选（手动触发，不自动跑）
 

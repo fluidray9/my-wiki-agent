@@ -5,19 +5,19 @@ description: "摄入源文档到 wiki，生成 source/entity/concept 页面并�
 
 # Wiki Ingest
 
-摄入源文档 skill，调用 `tools/ingest.py`。
+摄入源文档 skill，调用 `scripts/ingest.py`。
 
 ## 调用
 
 ```bash
 # 单个文件
-python tools/ingest.py raw/papers/my-paper.md
+python scripts/ingest.py raw/papers/my-paper.md
 
 # 批量目录
-python tools/ingest.py raw/papers/
+python scripts/ingest.py raw/papers/
 
 # 验证模式（不摄入，只检查）
-python tools/ingest.py --validate-only
+python scripts/ingest.py --validate-only
 ```
 
 ## 工作流程

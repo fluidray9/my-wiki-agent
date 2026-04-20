@@ -5,17 +5,17 @@ description: "构建知识图谱，解析 wikilinks + LLM 推断隐含关系 + L
 
 # Wiki Graph
 
-知识图谱构建 skill，调用 `tools/build_graph.py`。
+知识图谱构建 skill，调用 `scripts/build_graph.py`。
 
 ## 调用
 
 ```bash
-python tools/build_graph.py              # 完整构建
-python tools/build_graph.py --no-infer    # 跳过 LLM 推断（更快）
-python tools/build_graph.py --open        # 构建后打开 graph.html
-python tools/build_graph.py --clean       # 清除缓存，强制重新推断
-python tools/build_graph.py --report      # 生成健康报告
-python tools/build_graph.py --save        # 保存报告到 graph/graph-report.md
+python scripts/build_graph.py              # 完整构建
+python scripts/build_graph.py --no-infer    # 跳过 LLM 推断（更快）
+python scripts/build_graph.py --open        # 构建后打开 graph.html
+python scripts/build_graph.py --clean       # 清除缓存，强制重新推断
+python scripts/build_graph.py --report      # 生成健康报告
+python scripts/build_graph.py --save        # 保存报告到 graph/graph-report.md
 ```
 
 ## 两阶段构建

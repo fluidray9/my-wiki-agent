@@ -5,14 +5,14 @@ description: "检查 wiki 结构完整性，验证空文件、index 同步和 lo
 
 # Wiki Health
 
-结构检查 skill，调用 `tools/health.py` 执行快速完整性检查。
+结构检查 skill，调用 `scripts/health.py` 执行快速完整性检查。
 
 ## 调用
 
 ```bash
-python tools/health.py              # 输出报告到 stdout
-python tools/health.py --save        # 同时保存到 wiki/health-report.md
-python tools/health.py --json        # 机器可读 JSON 输出
+python scripts/health.py              # 输出报告到 stdout
+python scripts/health.py --save        # 同时保存到 wiki/health-report.md
+python scripts/health.py --json        # 机器可读 JSON 输出
 ```
 
 ## 检查项
