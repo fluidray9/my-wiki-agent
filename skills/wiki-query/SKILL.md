@@ -1,6 +1,6 @@
 ---
 name: wiki-query
-description: "查询 wiki：读相关页面 → LLM 综合回答 → 可选保存为 synthesis"
+description: "从 wiki 中检索信息并综合回答，支持保存为 synthesis。场景：需要从 wiki 查找信息、回答问题、综合多个页面的内容时"
 ---
 
 # Wiki Query

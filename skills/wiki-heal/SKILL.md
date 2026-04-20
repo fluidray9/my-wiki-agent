@@ -1,6 +1,6 @@
 ---
 name: wiki-heal
-description: "自动修复：发现缺失 entity 页面并生成完整定义"
+description: "自动发现并修复缺失的 entity 页面，调用 LLM 根据现有上下文生成定义。场景：lint 检查发现缺失 entity、需要自动生成 entity 页面时"
 ---
 
 # Wiki Heal

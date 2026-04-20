@@ -1,6 +1,6 @@
 ---
 name: wiki-ingest
-description: "摄入源文档到 wiki：读取文档 → 生成 source/entity/concept 页面 → 更新 index"
+description: "摄入源文档到 wiki，生成 source/entity/concept 页面并更新 index。场景：需要将 Markdown、PDF、arXiv 等文档转换为 wiki 页面时"
 ---
 
 # Wiki Ingest

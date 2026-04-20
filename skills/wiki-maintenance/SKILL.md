@@ -1,6 +1,6 @@
 ---
 name: wiki-maintenance
-description: "维护调度：依次调用 health/lint/heal/refresh，执行 wiki 体检"
+description: "执行 wiki 全面体检，依次调用 health/lint/heal/refresh 检查并修复问题。场景：需要对 wiki 进行定期维护、检查结构完整性和内容质量时"
 ---
 
 # Wiki Maintenance

@@ -1,6 +1,6 @@
 ---
 name: wiki-explore
-description: "图谱探索：打开知识图谱可视化，引导交互式浏览"
+description: "打开知识图谱可视化，展示 wiki 结构关系和统计信息。场景：需要查看 wiki 的整体结构、节点关系、图谱可视化时"
 ---
 
 # Wiki Explore

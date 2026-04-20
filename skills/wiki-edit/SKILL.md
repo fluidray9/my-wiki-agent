@@ -1,6 +1,6 @@
 ---
 name: wiki-edit
-description: "修改 wiki 页面：编辑内容 → 验证 wikilinks → 更新 index/log"
+description: "修改 wiki 页面内容，验证 wikilinks 有效性，同步更新 index 和 log。场景：需要编辑、更新、删除或重命名 wiki 页面时"
 ---
 
 # Wiki Edit

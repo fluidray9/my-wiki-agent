@@ -1,6 +1,6 @@
 ---
 name: wiki-graph
-description: "构建知识图谱：解析 wikilinks + LLM 推断 + Louvain 社区检测 + vis.js 可视化"
+description: "构建知识图谱，解析 wikilinks + LLM 推断隐含关系 + Louvain 社区检测 + vis.js 可视化。场景：需要更新图谱、查看页面关系、生成交互式可视化时"
 ---
 
 # Wiki Graph

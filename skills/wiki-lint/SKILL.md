@@ -1,6 +1,6 @@
 ---
 name: wiki-lint
-description: "语义检查：检查 wiki 内容质量（孤立页面、断链、矛盾、数据空白）。需要 LLM 调用，建议每 10-15 次 ingest 后运行。"
+description: "检查 wiki 内容质量，发现孤立页面、断链、矛盾和缺失 entity。场景：每 10-15 次 ingest 后、需要检查 wiki 语义完整性和内容一致性时"
 ---
 
 # Wiki Lint

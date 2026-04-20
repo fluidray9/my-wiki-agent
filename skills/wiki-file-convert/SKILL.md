@@ -1,6 +1,6 @@
 ---
 name: wiki-file-convert
-description: "文件转换：将 PDF 或其他格式转换为 Markdown 以供摄入"
+description: "将 PDF、arXiv 或其他格式文件转换为 Markdown，支持批量目录转换。场景：需要将 PDF、Word、arXiv 等文件转换为 Markdown 以便摄入 wiki 时"
 ---
 
 # Wiki File Convert

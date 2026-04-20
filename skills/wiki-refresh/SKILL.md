@@ -1,6 +1,6 @@
 ---
 name: wiki-refresh
-description: "刷新过时页面：检测 source 页面是否落后于原始文档"
+description: "检测 wiki source 页面是否落后于原始文档，通过哈希对比刷新过时内容。场景：源文档被修改后、需要同步更新 wiki source 页面时"
 ---
 
 # Wiki Refresh
@@ -27,8 +27,3 @@ python tools/refresh.py --dry-run            # 只列出需要刷新的页面
 
 - 控制台显示刷新进度
 - 刷新后更新缓存
-
-## 使用场景
-
-- raw/ 中的原始文档被修改
-- 需要同步更新 wiki
