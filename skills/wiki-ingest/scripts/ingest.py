@@ -3,28 +3,26 @@
 Ingest a source document into the LLM Wiki.
 
 Usage:
-    python tools/ingest.py <path-to-source>
-    python tools/ingest.py raw/articles/my-article.md
-    python tools/ingest.py --validate-only   # run validation on existing wiki
+    python scripts/ingest.py <path-to-source>
+    python scripts/ingest.py raw/articles/my-article.md
+    python scripts/ingest.py --validate-only   # run validation on existing wiki
 
-The LLM reads the source, extracts knowledge, and updates the wiki:
+Claude reads the source and generates wiki pages:
   - Creates wiki/sources/<slug>.md
   - Updates wiki/index.md
   - Updates wiki/overview.md (if warranted)
   - Creates/updates entity and concept pages
   - Appends to wiki/log.md
-  - Flags contradictions
   - Runs post-ingest validation (broken links, index coverage)
+
+The script provides save_source_page(), save_entity_page(), save_concept_page()
+for Claude to write the generated content.
 """
 
-import os
 import sys
-import json
 import hashlib
 import re
 from pathlib import Path
-from collections import defaultdict
-from datetime import date
 
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "wiki"
@@ -42,57 +40,10 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def call_llm(prompt: str, max_tokens: int = 8192) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("Error: litellm not installed. Run: pip install litellm")
-        sys.exit(1)
-        
-    model = os.getenv("LLM_MODEL", "claude-3-5-sonnet-latest")
-    
-    kwargs = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
-
-    response = completion(**kwargs)
-    return response.choices[0].message.content
-
-
 def write_file(path: Path, content: str):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     print(f"  wrote: {path.relative_to(REPO_ROOT)}")
-
-
-def build_wiki_context() -> str:
-    parts = []
-    if INDEX_FILE.exists():
-        parts.append(f"## wiki/index.md\n{read_file(INDEX_FILE)}")
-    if OVERVIEW_FILE.exists():
-        parts.append(f"## wiki/overview.md\n{read_file(OVERVIEW_FILE)}")
-    # Include a few recent source pages for contradiction checking
-    sources_dir = WIKI_DIR / "sources"
-    if sources_dir.exists():
-        recent = sorted(sources_dir.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[:5]
-        for p in recent:
-            parts.append(f"## {p.relative_to(REPO_ROOT)}\n{p.read_text()}")
-    return "\n\n---\n\n".join(parts)
-
-
-def parse_json_from_response(text: str) -> dict:
-    # Strip markdown code fences if present
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip())
-    text = re.sub(r"\s*```$", "", text.strip())
-    # Find the outermost JSON object
-    match = re.search(r"\{[\s\S]*\}", text)
-    if not match:
-        raise ValueError("No JSON object found in response")
-    return json.loads(match.group())
 
 
 def update_index(new_entry: str, section: str = "Sources"):
@@ -110,6 +61,21 @@ def update_index(new_entry: str, section: str = "Sources"):
 def append_log(entry: str):
     existing = read_file(LOG_FILE)
     write_file(LOG_FILE, entry.strip() + "\n\n" + existing)
+
+
+def save_source_page(slug: str, content: str) -> None:
+    """Write a source page. Content is provided by Claude."""
+    write_file(WIKI_DIR / "sources" / f"{slug}.md", content)
+
+
+def save_entity_page(path: str, content: str) -> None:
+    """Write an entity page. Path like 'entities/EntityName.md', content provided by Claude."""
+    write_file(WIKI_DIR / path, content)
+
+
+def save_concept_page(path: str, content: str) -> None:
+    """Write a concept page. Path like 'concepts/ConceptName.md', content provided by Claude."""
+    write_file(WIKI_DIR / path, content)
 
 
 def extract_wikilinks(content: str) -> list[str]:
@@ -170,129 +136,15 @@ def validate_ingest(changed_pages: list[str] | None = None) -> dict:
 
 
 def ingest(source_path: str):
+    """Ingest a source document. Claude generates the content and calls save_*_page functions."""
     source = Path(source_path)
     if not source.exists():
         print(f"Error: file not found: {source_path}")
         sys.exit(1)
 
-    source_content = source.read_text(encoding="utf-8")
-    source_hash = sha256(source_content)
-    today = date.today().isoformat()
-
-    print(f"\nIngesting: {source.name}  (hash: {source_hash})")
-
-    wiki_context = build_wiki_context()
-    schema = read_file(SCHEMA_FILE)
-
-    prompt = f"""You are maintaining an LLM Wiki. Process this source document and integrate its knowledge into the wiki.
-
-Schema and conventions:
-{schema}
-
-Current wiki state (index + recent pages):
-{wiki_context if wiki_context else "(wiki is empty — this is the first source)"}
-
-New source to ingest (file: {source.relative_to(REPO_ROOT) if source.is_relative_to(REPO_ROOT) else source.name}):
-=== SOURCE START ===
-{source_content}
-=== SOURCE END ===
-
-Today's date: {today}
-
-Return ONLY a valid JSON object with these fields (no markdown fences, no prose outside the JSON):
-{{
-  "title": "Human-readable title for this source",
-  "slug": "kebab-case-slug-for-filename",
-  "source_page": "full markdown content for wiki/sources/<slug>.md — use the source page format from the schema. CRITICAL: Aggressively convert key people, products, concepts and projects into [[Wikilinks]] inline in the text. Omitting [[ ]] for known terms is a failure.",
-  "index_entry": "- [Title](sources/slug.md) — one-line summary",
-  "overview_update": "full updated content for wiki/overview.md, or null if no update needed",
-  "entity_pages": [
-    {{"path": "entities/EntityName.md", "content": "full markdown content"}}
-  ],
-  "concept_pages": [
-    {{"path": "concepts/ConceptName.md", "content": "full markdown content"}}
-  ],
-  "contradictions": ["describe any contradiction with existing wiki content, or empty list"],
-  "log_entry": "## [{today}] ingest | <title>\\n\\nAdded source. Key claims: ..."
-}}
-"""
-
-    print(f"  calling API (model: ...)")
-    raw = call_llm(prompt, max_tokens=8192)
-    try:
-        data = parse_json_from_response(raw)
-    except (ValueError, json.JSONDecodeError) as e:
-        print(f"Error parsing API response: {e}")
-        print("Raw response saved to /tmp/ingest_debug.txt")
-        Path("/tmp/ingest_debug.txt").write_text(raw)
-        sys.exit(1)
-
-    # Write source page
-    slug = data["slug"]
-    write_file(WIKI_DIR / "sources" / f"{slug}.md", data["source_page"])
-
-    # Write entity pages
-    for page in data.get("entity_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
-
-    # Write concept pages
-    for page in data.get("concept_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
-
-    # Update overview
-    if data.get("overview_update"):
-        write_file(OVERVIEW_FILE, data["overview_update"])
-
-    # Update index
-    update_index(data["index_entry"], section="Sources")
-
-    # Append log
-    append_log(data["log_entry"])
-
-    # Report contradictions
-    contradictions = data.get("contradictions", [])
-    if contradictions:
-        print("\n  ⚠️  Contradictions detected:")
-        for c in contradictions:
-            print(f"     - {c}")
-
-    # --- Post-ingest validation ---
-    created_pages = [f"sources/{slug}.md"]
-    for page in data.get("entity_pages", []):
-        created_pages.append(page["path"])
-    for page in data.get("concept_pages", []):
-        created_pages.append(page["path"])
-    updated_pages = ["index.md", "log.md"]
-    if data.get("overview_update"):
-        updated_pages.append("overview.md")
-
-    validation = validate_ingest(created_pages)
-
-    print(f"\n{'='*50}")
-    print(f"  ✅ Ingested: {data['title']}")
-    print(f"{'='*50}")
-    print(f"  Created : {len(created_pages)} pages")
-    for p in created_pages:
-        print(f"           + wiki/{p}")
-    print(f"  Updated : {len(updated_pages)} pages")
-    for p in updated_pages:
-        print(f"           ~ wiki/{p}")
-    if contradictions:
-        print(f"  Warnings: {len(contradictions)} contradiction(s)")
-    if validation["broken_links"]:
-        print(f"  ⚠️  Broken links: {len(validation['broken_links'])}")
-        for page, link in validation["broken_links"][:10]:
-            print(f"           wiki/{page} → [[{link}]]")
-        if len(validation["broken_links"]) > 10:
-            print(f"           ... and {len(validation['broken_links']) - 10} more")
-    if validation["unindexed"]:
-        print(f"  ⚠️  Not in index.md: {len(validation['unindexed'])}")
-        for p in validation["unindexed"][:10]:
-            print(f"           wiki/{p}")
-        if len(validation["unindexed"]) > 10:
-            print(f"           ... and {len(validation['unindexed']) - 10} more")
-    if not validation["broken_links"] and not validation["unindexed"]:
-        print("  ✓ Validation passed — no broken links, all pages indexed")
+    print(f"\nIngesting: {source.name}")
+    print("  Claude will generate the wiki pages from this source.")
+    print("  Use save_source_page(), save_entity_page(), save_concept_page() to write pages.")
     print()
 
 
@@ -329,8 +181,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if len(sys.argv) < 2:
-        print("Usage: python tools/ingest.py <path-to-source> [path2 ...] [dir1 ...]")
-        print("       python tools/ingest.py --validate-only")
+        print("Usage: python scripts/ingest.py <path-to-source> [path2 ...] [dir1 ...]")
+        print("       python scripts/ingest.py --validate-only")
         sys.exit(1)
         
     paths_to_process = []

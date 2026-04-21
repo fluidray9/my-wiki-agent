@@ -18,28 +18,41 @@ python scripts/lint.py --save        # 保存报告
 python scripts/heal.py
 ```
 
-## 功能
+## Lint 工作流程
 
-### lint.py — 检查
+**脚本** 运行确定性检查：
+1. `find_orphans()` — 检查孤立页面
+2. `find_broken_links()` — 检查断链
+3. `find_missing_entities()` — 检查缺失 entity（出现≥3次但无页面）
+4. `check_hub_stubs()` — Hub 残缺检查（需先运行 build_graph）
+5. `check_fragile_bridges()` — 脆弱桥接检查（需先运行 build_graph）
+6. `check_isolated_communities()` — 孤立社区检查（需先运行 build_graph）
 
-1. **孤立页面** — 没有其他页面链接到它
-2. **断链** — `[[wikilinks]]` 指向不存在的页面
-3. **矛盾** — 页面间的冲突声明
-4. **过时的摘要** — 被新源超越的摘要
-5. **缺失 entity** — 在 3+ 页面提及但没有自身页面的实体
-6. **数据空白** — wiki 无法回答的重要问题
+**Claude** 完成语义检查：
+- 矛盾检测 — 对比不同页面的 claims
+- 过时检测 — 检查是否有更新的 source
+- 数据空白 — 发现 wiki 无法回答的问题
 
-### heal.py — 修复
+## Heal 工作流程
 
-自动为缺失的 entity 生成定义页面：
-1. 找到所有缺失 entity
-2. 搜索引用该 entity 的页面
-3. 提取上下文
-4. 调用 LLM 生成 entity 页面
-5. 保存到 `wiki/entities/<EntityName>.md`
+1. **脚本** `find_missing_entities()` 获取缺失 entity 列表
+2. **脚本** `search_sources(entity_name)` 获取引用上下文
+3. **Claude** 根据上下文生成 entity 页面内容
+4. **Claude** 调用 `save_entity_page(name, content)` 写入文件
 
-## 工作流
+## 脚本职责
 
-通常 `wiki-maintenance` 会依次调用：
-1. `python scripts/lint.py` — 检查问题
-2. `python scripts/heal.py` — 修复缺失 entity
+- 确定性检查函数（find_orphans, find_broken_links, find_missing_entities 等）
+- 搜索引用上下文（search_sources）
+- 文件写入（save_entity_page）
+
+## Claude 职责
+
+- 语义分析（矛盾、过时、数据空白）
+- 生成 entity 页面内容
+- 调用 `save_entity_page(name, content)` 写入文件
+
+## 输出
+
+- lint 报告（确定性检查结果 + Claude 语义分析）
+- heal 修复列表（如有）

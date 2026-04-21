@@ -26,8 +26,6 @@ import webbrowser
 from pathlib import Path
 from datetime import date
 
-import os
-
 try:
     import networkx as nx
     from networkx.algorithms import community as nx_community
@@ -64,28 +62,6 @@ EDGE_COLORS = {
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def call_llm(prompt: str, model_env: str, default_model: str, max_tokens: int = 4096) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("Error: litellm not installed. Run: pip install litellm")
-        import sys
-        sys.exit(1)
-
-    model = os.getenv(model_env, default_model)
-
-    kwargs = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
-
-    response = completion(**kwargs)
-    return response.choices[0].message.content
 
 
 def sha256(text: str) -> str:
@@ -215,98 +191,42 @@ def append_checkpoint(page_id_str: str, edges: list[dict]):
 
 
 def build_inferred_edges(pages: list[Path], existing_edges: list[dict], cache: dict, resume: bool = True) -> list[dict]:
-    """Pass 2: API-inferred semantic relationships with checkpoint/resume."""
-    checkpoint_edges, completed_ids = ([], set())
-    if resume:
-        checkpoint_edges, completed_ids = load_checkpoint()
-        if completed_ids:
-            print(f"  checkpoint: {len(completed_ids)} pages already done, {len(checkpoint_edges)} edges loaded")
+    """Build extracted (deterministic) edges only. For INFERRED edges, use add_inferred_edges() after Claude inference."""
+    print("  Pass 2 (INFERRED edges): Claude should call add_inferred_edges() to add implicit relationships.")
+    return existing_edges  # Return as-is since no LLM inference
 
-    new_edges = list(checkpoint_edges)
 
-    changed_pages = []
-    for p in pages:
-        content = read_file(p)
-        h = sha256(content)
-        pid = page_id(p)
-        entry = cache.get(str(p))
+def add_inferred_edges(claude_edges: list[dict]) -> None:
+    """Add Claude-inferred edges to graph.json. Call after Claude analyzes pages."""
+    if not claude_edges:
+        return
 
-        if pid in completed_ids:
-            continue
+    GRAPH_DIR.mkdir(parents=True, exist_ok=True)
 
-        if isinstance(entry, dict) and entry.get("hash") == h:
-            for rel in entry.get("edges", []):
-                rel_type = rel.get("type", "INFERRED")
-                confidence = float(rel.get("confidence", 0.7))
-                new_edges.append({
-                    "id": edge_id(pid, rel["to"], rel_type),
-                    "from": pid,
-                    "to": rel["to"],
-                    "type": rel_type,
-                    "title": rel.get("relationship", ""),
-                    "label": "",
-                    "color": EDGE_COLORS.get(rel_type, EDGE_COLORS["INFERRED"]),
-                    "confidence": confidence,
-                })
-        else:
-            changed_pages.append(p)
-
-    if not changed_pages:
-        print("  no changed pages — skipping semantic inference")
-        return new_edges
-
-    total_pages = len(changed_pages)
-    already_done = len(completed_ids)
-    grand_total = total_pages + already_done
-    print(f"  inferring relationships for {total_pages} remaining pages (of {grand_total} total)...")
-
-    # Build a summary of existing nodes for context
-    node_list = "\n".join(f"- {page_id(p)} ({extract_frontmatter_type(read_file(p))})" for p in pages)
-    existing_edge_summary = "\n".join(
-        f"- {e['from']} → {e['to']} (EXTRACTED)" for e in existing_edges[:30]
-    )
-
-    for i, p in enumerate(changed_pages, 1):
-        full_content = read_file(p)
-        content = full_content[:2000]
-        src = page_id(p)
-        global_idx = already_done + i
-        print(f"    [{global_idx}/{grand_total}] Inferring for '{src}'... ", end="", flush=True)
-
-        prompt = f"""Analyze this wiki page and identify implicit semantic relationships to other pages in the wiki.
-
-Source page: {src}
-Content:
-{content}
-
-All available pages:
-{node_list}
-
-Already-extracted edges from this page:
-{existing_edge_summary}
-
-Return ONLY a JSON object containing an "edges" array of NEW relationships not already captured by explicit wikilinks. The response must be STRICTLY valid JSON formatted exactly like this:
-{{
-  "edges": [
-    {{"to": "page-id", "relationship": "one-line description", "confidence": 0.0-1.0, "type": "INFERRED or AMBIGUOUS"}}
-  ]
-}}
-
-CRITICAL INSTRUCTION:
-YOU MUST RETURN ONLY A RAW JSON STRING BEGINNING WITH {{ AND ENDING WITH }}.
-DO NOT OUTPUT BULLET POINTS. DO NOT OUTPUT MARKDOWN LISTS.
-ANY CONVERSATIONAL PREAMBLE WILL CAUSE A SYSTEM CRASH.
-
-Rules:
-- Only include pages from the available list above
-- Confidence >= 0.7 → INFERRED, < 0.7 → AMBIGUOUS
-- Do not repeat edges already in the extracted list
-- Return {{"edges": []}} if no new relationships found
-"""
-        page_edges = []
-        valid_rels = []
+    # Load existing graph.json
+    if GRAPH_JSON.exists():
         try:
-            raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=1024)
+            graph_data = json.loads(GRAPH_JSON.read_text())
+        except (json.JSONDecodeError, IOError):
+            graph_data = {"nodes": [], "edges": [], "built": ""}
+    else:
+        print("  No graph.json found. Run build_graph.py first to build extracted edges.")
+        return
+
+    existing_edge_ids = {e["id"] for e in graph_data.get("edges", [])}
+
+    added = 0
+    for edge in claude_edges:
+        edge_type = edge.get("type", "INFERRED")
+        edge["id"] = edge.get("id", edge_id(edge["from"], edge["to"], edge_type))
+        edge["color"] = edge.get("color", EDGE_COLORS.get(edge_type, EDGE_COLORS["INFERRED"]))
+        edge["confidence"] = float(edge.get("confidence", 0.7))
+        if edge["id"] not in existing_edge_ids:
+            graph_data["edges"].append(edge)
+            added += 1
+
+    GRAPH_JSON.write_text(json.dumps(graph_data, indent=2, ensure_ascii=False))
+    print(f"  added {added} inferred edges to graph.json")
             raw = raw.strip()
 
             match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)

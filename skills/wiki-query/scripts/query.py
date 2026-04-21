@@ -38,22 +38,6 @@ def write_file(path: Path, content: str):
     print(f"  saved: {path.relative_to(REPO_ROOT)}")
 
 
-def call_llm(prompt: str, model_env: str, default_model: str, max_tokens: int = 4096) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("Error: litellm not installed. Run: pip install litellm")
-        sys.exit(1)
-        
-    model = os.getenv(model_env, default_model)
-    response = completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens
-    )
-    return response.choices[0].message.content
-
-
 def find_relevant_pages(question: str, index_content: str) -> list[Path]:
     """Extract linked pages from index that seem relevant to the question.
     Uses character-level matching for CJK compatibility."""
@@ -113,74 +97,39 @@ def append_log(entry: str):
     LOG_FILE.write_text(entry.strip() + "\n\n" + existing, encoding="utf-8")
 
 
-def query(question: str, save_path: str | None = None):
+def query(question: str) -> list[dict]:
+    """Find relevant pages for a question. Returns list of dicts with path info.
+
+    Claude should read these pages and synthesize the answer.
+    """
     today = date.today().isoformat()
 
     # Step 1: Read index
     index_content = read_file(INDEX_FILE)
     if not index_content:
-        print("Wiki is empty. Ingest some sources first with: python tools/ingest.py <source>")
-        sys.exit(1)
+        print("Wiki is empty. Ingest some sources first with: python scripts/ingest.py <source>")
+        return []
 
     # Step 2: Find relevant pages
     relevant_pages = find_relevant_pages(question, index_content)
 
-    # If no keyword match, ask Claude to identify relevant pages from the index
-    if not relevant_pages or len(relevant_pages) <= 1:
-        print("  selecting relevant pages via API...")
-        prompt = f"Given this wiki index:\n\n{index_content}\n\nWhich pages are most relevant to answering: \"{question}\"\n\nReturn ONLY a JSON array of relative file paths (as listed in the index), e.g. [\"sources/foo.md\", \"concepts/Bar.md\"]. Maximum 10 pages."
-        raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=512)
-        raw = raw.strip()
-        raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$", "", raw)
-        try:
-            paths = json.loads(raw)
-            relevant_pages = [WIKI_DIR / p for p in paths if (WIKI_DIR / p).exists()]
-        except (json.JSONDecodeError, TypeError):
-            pass
+    if not relevant_pages:
+        print("  No relevant pages found.")
+        return []
 
-    # Step 3: Read relevant pages
-    pages_context = ""
+    # Print found pages for Claude
+    print(f"  Found {len(relevant_pages)} relevant pages:")
     for p in relevant_pages:
-        rel = p.relative_to(REPO_ROOT)
-        pages_context += f"\n\n### {rel}\n{p.read_text(encoding='utf-8')}"
+        print(f"    - {p.relative_to(REPO_ROOT)}")
 
-    if not pages_context:
-        pages_context = f"\n\n### wiki/index.md\n{index_content}"
+    return [{"path": str(p), "relative": str(p.relative_to(REPO_ROOT))} for p in relevant_pages]
 
-    schema = read_file(SCHEMA_FILE)
 
-    # Step 4: Synthesize answer
-    print(f"  synthesizing answer from {len(relevant_pages)} pages...")
-    prompt = f"""You are querying an LLM Wiki to answer a question. Use the wiki pages below to synthesize a thorough answer. Cite sources using [[PageName]] wikilink syntax.
-
-Schema:
-{schema}
-
-Wiki pages:
-{pages_context}
-
-Question: {question}
-
-Write a well-structured markdown answer with headers, bullets, and [[wikilink]] citations. At the end, add a ## Sources section listing the pages you drew from.
-"""
-    answer = call_llm(prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=4096)
-    print("\n" + "=" * 60)
-    print(answer)
-    print("=" * 60)
-
-    # Step 5: Optionally save answer
-    if save_path is not None:
-        if save_path == "":
-            # Prompt for filename
-            slug = input("\nSave as (slug, e.g. 'my-analysis'): ").strip()
-            if not slug:
-                print("Skipping save.")
-                return
-            save_path = f"syntheses/{slug}.md"
-
-        full_save_path = WIKI_DIR / save_path
-        frontmatter = f"""---
+def save_synthesis(save_path: str, content: str, question: str) -> None:
+    """Save a synthesis page. Called by Claude after synthesizing the answer."""
+    today = date.today().isoformat()
+    full_save_path = WIKI_DIR / save_path
+    frontmatter = f"""---
 title: "{question[:80]}"
 type: synthesis
 tags: []
@@ -189,19 +138,15 @@ last_updated: {today}
 ---
 
 """
-        write_file(full_save_path, frontmatter + answer)
+    write_file(full_save_path, frontmatter + content)
 
-        # Update index
-        index_content = read_file(INDEX_FILE)
-        entry = f"- [{question[:60]}]({save_path}) — synthesis"
-        if "## Syntheses" in index_content:
-            index_content = index_content.replace("## Syntheses\n", f"## Syntheses\n{entry}\n")
-            INDEX_FILE.write_text(index_content, encoding="utf-8")
-        print(f"  indexed: {save_path}")
-
-    # Append to log
-    append_log(f"## [{today}] query | {question[:80]}\n\nSynthesized answer from {len(relevant_pages)} pages." +
-               (f" Saved to {save_path}." if save_path else ""))
+    # Update index
+    index_content = read_file(INDEX_FILE)
+    entry = f"- [{question[:60]}]({save_path}) — synthesis"
+    if "## Syntheses" in index_content:
+        index_content = index_content.replace("## Syntheses\n", f"## Syntheses\n{entry}\n")
+        INDEX_FILE.write_text(index_content, encoding="utf-8")
+    print(f"  indexed: {save_path}")
 
 
 if __name__ == "__main__":
@@ -210,4 +155,6 @@ if __name__ == "__main__":
     parser.add_argument("--save", nargs="?", const="", default=None,
                         help="Save answer to wiki (optionally specify path)")
     args = parser.parse_args()
-    query(args.question, args.save)
+    pages = query(args.question)
+    if pages:
+        print("\nClaude should read these pages and synthesize the answer.")

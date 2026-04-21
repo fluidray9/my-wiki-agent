@@ -39,22 +39,6 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def call_llm(prompt: str, model_env: str, default_model: str, max_tokens: int = 4096) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("Error: litellm not installed. Run: pip install litellm")
-        sys.exit(1)
-        
-    model = os.getenv(model_env, default_model)
-    response = completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens
-    )
-    return response.choices[0].message.content
-
-
 def all_wiki_pages() -> list[Path]:
     return [p for p in WIKI_DIR.rglob("*.md")
             if p.name not in ("index.md", "log.md", "lint-report.md")]
@@ -270,33 +254,8 @@ def run_lint():
     else:
         print("  [skip] no graph.json — run build_graph.py first for graph-aware checks")
 
-    # Build context for semantic checks (contradictions, gaps)
-    # Use a sample of pages to stay within context limits
-    sample = pages[:20]
-    pages_context = ""
-    for p in sample:
-        rel = p.relative_to(REPO_ROOT)
-        pages_context += f"\n\n### {rel}\n{read_file(p)[:1500]}"  # truncate long pages
-
-    print("  running semantic lint via API...")
-    prompt = f"""You are linting an LLM Wiki. Review the pages below and identify:
-1. Contradictions between pages (claims that conflict)
-2. Stale content (summaries that newer sources have superseded)
-3. Data gaps (important questions the wiki can't answer — suggest specific sources to find)
-4. Concepts mentioned but lacking depth
-
-Wiki pages (sample of {len(sample)} pages):
-{pages_context}
-
-Return a markdown lint report with these sections:
-## Contradictions
-## Stale Content
-## Data Gaps & Suggested Sources
-## Concepts Needing More Depth
-
-Be specific — name the exact pages and claims involved.
-"""
-    semantic_report = call_llm(prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=3000)
+    print("\n  Note: Semantic checks (contradictions, stale content, data gaps) are")
+    print("  performed by Claude based on the deterministic check results below.")
 
     # Compose full report
     report_lines = [
@@ -386,7 +345,15 @@ Be specific — name the exact pages and claims involved.
 
     report_lines.append("---")
     report_lines.append("")
-    report_lines.append(semantic_report)
+    report_lines.append("## Semantic Issues")
+    report_lines.append("")
+    report_lines.append("Claude should analyze the above structural issues and the wiki pages to identify:")
+    report_lines.append("- Contradictions between pages (claims that conflict)")
+    report_lines.append("- Stale content (summaries that newer sources have superseded)")
+    report_lines.append("- Data gaps (questions the wiki can't answer)")
+    report_lines.append("- Concepts lacking depth")
+    report_lines.append("")
+    report_lines.append("Run `python scripts/lint.py --save` and check wiki/lint-report.md for the full report.")
 
     report = "\n".join(report_lines)
     print("\n" + report)

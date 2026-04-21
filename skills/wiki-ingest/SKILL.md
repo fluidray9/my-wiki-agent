@@ -10,32 +10,33 @@ description: "摄入源文档到 wiki，生成 source/entity/concept 页面并�
 ## 调用
 
 ```bash
-# 单个文件
 python scripts/ingest.py raw/papers/my-paper.md
-
-# 批量目录
-python scripts/ingest.py raw/papers/
-
-# 验证模式（不摄入，只检查）
 python scripts/ingest.py --validate-only
 ```
 
 ## 工作流程
 
-1. 读取源文档内容
-2. 构建当前 wiki 上下文（index + overview + 最近 5 个 source）
-3. 调用 LLM 生成：
-   - `wiki/sources/<slug>.md` — source 页面
-   - `wiki/entities/<Name>.md` — entity 页面（人物/公司/项目）
-   - `wiki/concepts/<Name>.md` — concept 页面（概念/框架）
-   - 更新 `wiki/overview.md`
-   - 标记矛盾
-4. 更新 `wiki/index.md`
-5. 记录到 `wiki/log.md`
-6. 验证：检查断链、index 覆盖
+1. **Claude** 读取源文档内容
+2. **Claude** 根据文档生成 source/entity/concept 页面的 markdown 内容
+3. **脚本** 接收 Claude 调用 `save_source_page()`, `save_entity_page()`, `save_concept_page()` 写入文件
+4. **脚本** 更新 `wiki/index.md` 和 `wiki/log.md`
+
+## 脚本职责
+
+- 文件读写（`save_source_page()`, `save_entity_page()`, `save_concept_page()`）
+- `update_index()` — 更新 index.md
+- `append_log()` — 追加到 log.md
+- `validate_ingest()` — 验证断链和 index 覆盖
+
+## Claude 职责
+
+- 读取源文档内容
+- 生成页面 markdown 内容（包含完整 frontmatter）
+- 调用 `save_source_page(slug, content)` 写入 source 页面
+- 调用 `save_entity_page(path, content)` 写入 entity 页面
+- 调用 `save_concept_page(path, content)` 写入 concept 页面
 
 ## 输出
 
 - 创建的页面列表
-- 矛盾警告（如有）
-- 验证结果
+- 验证结果（断链检查、index 覆盖）

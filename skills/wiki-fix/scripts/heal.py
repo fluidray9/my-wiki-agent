@@ -10,17 +10,10 @@ Usage:
     python scripts/heal.py
 """
 
-import os
 import sys
 import re
 from pathlib import Path
 from collections import defaultdict
-
-try:
-    from litellm import completion
-except ImportError:
-    print("Error: litellm not installed. Run: pip install litellm")
-    sys.exit(1)
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 WIKI_DIR = REPO_ROOT / "wiki"
@@ -29,6 +22,12 @@ ENTITIES_DIR = WIKI_DIR / "entities"
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def write_file(path: Path, content: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    print(f"  wrote: {path.relative_to(REPO_ROOT)}")
 
 
 def extract_wikilinks(content: str) -> list[str]:
@@ -53,73 +52,55 @@ def find_missing_entities(pages: list[Path]) -> list[str]:
     return [name for name, count in mention_counts.items() if count >= 3]
 
 
-def call_llm(prompt: str, max_tokens: int = 1500) -> str:
-    model = os.getenv("LLM_MODEL", "claude-3-5-haiku-latest")
-
-    response = completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens
-    )
-    return response.choices[0].message.content
-
-
-def search_sources(entity: str, pages: list[Path]) -> list[Path]:
-    """Find up to 15 pages where this entity is mentioned natively."""
-    sources = []
+def search_sources(entity: str, pages: list[Path]) -> list[dict]:
+    """Find pages where this entity is mentioned, return context snippets."""
+    results = []
     for p in pages:
         if "entities" not in str(p.parent) and "concepts" not in str(p.parent):
             content = read_file(p)
             if entity.lower() in content.lower():
-                sources.append(p)
-    return sources[:15]
+                # Find the line containing the entity
+                lines = content.split('\n')
+                for i, line in enumerate(lines):
+                    if entity.lower() in line.lower():
+                        results.append({
+                            "page": str(p.relative_to(REPO_ROOT)),
+                            "context": line.strip(),
+                            "line": i + 1
+                        })
+                        break
+    return results[:15]
 
 
-def heal_missing_entities():
+def save_entity_page(name: str, content: str) -> None:
+    """Write an entity page. Content is provided by Claude."""
+    write_file(ENTITIES_DIR / f"{name}.md", content)
+
+
+def heal() -> list[dict]:
+    """Find missing entities and their contexts. Claude generates the content."""
     pages = all_wiki_pages()
     missing_entities = find_missing_entities(pages)
 
     if not missing_entities:
         print("Graph is fully connected. No missing entities found!")
-        return
+        return []
 
     ENTITIES_DIR.mkdir(exist_ok=True, parents=True)
-    print(f"Found {len(missing_entities)} missing entity nodes. Commencing auto-heal...")
+    print(f"Found {len(missing_entities)} missing entity nodes.")
 
+    result = []
     for entity in missing_entities:
-        print(f"Healing entity page for: {entity}")
-        sources = search_sources(entity, pages)
+        contexts = search_sources(entity, pages)
+        result.append({
+            "name": entity,
+            "contexts": contexts
+        })
+        print(f"  - {entity}: {len(contexts)} references found")
 
-        context = ""
-        for s in sources:
-            context += f"\n\n### {s.name}\n{s.read_text(encoding='utf-8')[:800]}"
-
-        prompt = f"""You are filling a data gap in the Personal LLM Wiki.
-Create an Entity definition page for "{entity}".
-
-Here is how the entity appears in the current sources:
-{context}
-
-Format:
----
-title: "{entity}"
-type: entity
-tags: []
-sources: {[s.name for s in sources]}
----
-
-# {entity}
-
-Write a comprehensive paragraph defining what `{entity}` means in the context of this wiki, its main significance, and any actions or associations related to it.
-"""
-        try:
-            result = call_llm(prompt)
-            out_path = ENTITIES_DIR / f"{entity}.md"
-            out_path.write_text(result, encoding="utf-8")
-            print(f" -> Saved to {out_path.relative_to(REPO_ROOT)}")
-        except Exception as e:
-            print(f" [!] Failed to generate {entity}: {e}")
+    print("\nClaude should generate entity pages using save_entity_page().")
+    return result
 
 
 if __name__ == "__main__":
-    heal_missing_entities()
+    heal()
