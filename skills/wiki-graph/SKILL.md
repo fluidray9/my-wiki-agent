@@ -5,9 +5,9 @@ description: "构建知识图谱，解析 wikilinks + Louvain 社区检测 + vis
 
 # Wiki Graph
 
-知识图谱构建 skill，调用 `scripts/build_graph.py`。
+构建知识图谱。**Agent 手动推断隐含关系，脚本处理确定性构建**。
 
-## 调用
+## 命令行用法
 
 ```bash
 python scripts/build_graph.py              # 确定性构建（EXTRACTED 边）
@@ -18,29 +18,38 @@ python scripts/build_graph.py --save        # 保存报告到 graph/graph-report
 
 ## 工作流程
 
+**Pass 1: 确定性构建（脚本）**
 1. **脚本** `extract_wikilinks()` — 解析所有页面的 [[wikilinks]]
 2. **脚本** `build_extracted_edges()` — 构建 EXTRACTED 类型的边（置信度 1.0）
-3. **脚本** `detect_communities()` — Louvain 社区检测（使用 networkx）
+3. **脚本** `detect_communities()` — Louvain 社区检测
 4. **脚本** `render_html()` — 生成 vis.js 可视化
 
-5. **Claude** 读取页面内容，推断隐含关系
-6. **Claude** 调用 `add_inferred_edges()` 将 INFERRED 边追加到 graph.json
+**Pass 2: 隐含关系推断（Agent）**
+5. **Agent** 读取页面内容，推断隐含关系
+6. **Agent** 将 INFERRED 边追加到 graph.json
 
-## 脚本职责
+## 脚本函数
 
-- wikilink 解析（`extract_wikilinks()`）
-- 构建 EXTRACTED 边（`build_extracted_edges()`）
-- Louvain 社区检测（`detect_communities()`）
-- HTML 可视化生成（`render_html()`）
-- graph.json 读写（`add_inferred_edges()`）
+```python
+# 追加隐含关系边（Agent 调用）
+add_inferred_edges([{"from": "PageA", "to": "PageB", "type": "INFERRED", "confidence": 0.8, "reason": "..."}])
+```
 
-## Claude 职责
+## 图谱结构
 
-- 读取页面内容
-- 推断 INFERRED 类型的隐含关系边
-- 调用 `add_inferred_edges([{"from": "...", "to": "...", "type": "INFERRED", ...}])` 追加到图谱
+| 类型 | 说明 |
+|------|------|
+| EXTRACTED | 直接从 wikilink 提取，置信度 1.0 |
+| INFERRED | Agent 推断的隐含关系 |
+| AMBIGUOUS | 关系不明确 |
+
+## Agent 职责
+
+- 读取 wiki 页面内容
+- 推断隐含关系（如 "A 和 B 都提到了 X，所以可能相关"）
+- 调用 `add_inferred_edges()` 追加到图谱
 
 ## 输出
 
 - `graph/graph.json` — 节点和边数据
-- `graph/graph.html` — 可交互的 vis.js 可视化
+- `graph/graph.html` — 可交互 vis.js 可视化

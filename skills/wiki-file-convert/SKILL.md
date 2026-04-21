@@ -5,9 +5,9 @@ description: "将 PDF、arXiv 或其他格式文件转换为 Markdown，支持�
 
 # Wiki File Convert
 
-文件转换 skill，调用 `scripts/pdf2md.py` 或 `scripts/file_to_md.py`。
+将 PDF、arXiv 等文件转换为 Markdown。**脚本执行转换，Agent 负责转换后的 ingest**。
 
-## 调用
+## 命令行用法
 
 ```bash
 # arXiv 论文
@@ -22,19 +22,24 @@ python scripts/pdf2md.py paper.pdf --backend pymupdf4llm  # 快速
 # 指定输出路径
 python scripts/pdf2md.py paper.pdf -o raw/papers/my-paper.md
 
-# 目录批量转换（使用 file_to_md.py）
+# 目录批量转换
 python scripts/file_to_md.py --input_dir raw/articles/
-python scripts/file_to_md.py --input_dir raw/articles/ --delete_source  # 转换后删除原文件
+python scripts/file_to_md.py --input_dir raw/articles/ --delete_source
 ```
 
 ## 支持的后端
 
 | 后端 | 适用场景 | 安装 |
 |------|---------|------|
-| arxiv2md | arXiv 论文（使用结构化源，非 PDF） | `pip install arxiv2markdown` |
-| marker | 复杂多栏布局的 PDF | `pip install marker-pdf` |
+| arxiv2md | arXiv 论文 | `pip install arxiv2markdown` |
+| marker | 复杂多栏布局 PDF | `pip install marker-pdf` |
 | pymupdf4llm | 快速转换原生文本 PDF | `pip install pymupdf4llm` |
 | markitdown | 通用文件（Word/Excel 等） | `pip install markitdown` |
+
+## Agent 职责
+
+- 运行转换脚本生成 .md 文件到 `raw/` 目录
+- 使用 `wiki-ingest` 技能将转换后的文件 ingest 到 wiki
 
 ## 输出
 

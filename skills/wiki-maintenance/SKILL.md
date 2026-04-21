@@ -5,29 +5,44 @@ description: "执行 wiki 全面体检，依次调用 health/lint/heal/refresh �
 
 # Wiki Maintenance
 
-维护调度 skill，无独立 Python 脚本，依次调用子 skill。
+wiki 全面维护调度。**Agent 依次调用子 skill 执行检查和修复**。
 
 ## 工作流程
 
-1. **wiki-health** — 结构检查
+1. **wiki-health** — 结构检查（先跑，确保基础没问题）
    - 空文件/残缺文件
    - index 同步
    - log 覆盖
+
 2. **wiki-fix（lint）** — 语义检查（如 health 通过）
    - 孤立页面
    - 断链
-   - 矛盾
+   - 矛盾检测（Agent 手动）
    - 缺失 entity
-   - 数据空白
-3. **wiki-fix（heal）** — 自动修复（如发现缺失 entity）
+   - 数据空白（Agent 手动）
+
+3. **wiki-fix（heal）** — 自动修复（如 lint 发现缺失 entity）
+   - Agent 根据脚本提供的上下文生成缺失 entity
+
 4. **wiki-refresh** — 检查过时 source（可选）
-5. **汇总报告** — 整理所有检查结果
 
-## 顺序说明
+5. **汇总报告** — Agent 整理所有检查结果
 
-- health 必须在 fix 之前（lint 检查语义，结构有问题则跳过）
-- heal 在 lint 之后（lint 发现缺失 entity，heal 修复）
-- refresh 可选（手动触发，不自动跑）
+## 执行顺序
+
+```
+wiki-health → wiki-fix (lint) → wiki-fix (heal) → wiki-refresh (可选)
+```
+
+- health 必须在 fix 之前（结构有问题则 lint 无意义）
+- heal 在 lint 之后（lint 发现问题，heal 修复）
+- refresh 可选（手动触发）
+
+## Agent 职责
+
+- 依次调用各子 skill
+- 收集各 skill 的输出结果
+- 综合分析并生成维护报告
 
 ## 输出
 

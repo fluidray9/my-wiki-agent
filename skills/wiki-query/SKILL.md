@@ -5,36 +5,39 @@ description: "从 wiki 中检索信息并综合回答，支持保存为 synthesi
 
 # Wiki Query
 
-查询 wiki skill，调用 `scripts/query.py`。
-
-## 调用
-
-```bash
-python scripts/query.py "问题内容"
-```
+从 wiki 检索信息并综合回答。**Agent 手动执行，脚本只负责查找页面**。
 
 ## 工作流程
 
-1. **脚本** `find_relevant_pages()` 读取 index 并匹配相关页面
-2. **脚本** 返回页面路径列表给 Claude
-3. **Claude** 读取页面内容并综合回答
-4. **Claude** 可调用 `save_synthesis()` 保存为 synthesis 页面
+1. **Agent 读取** `wiki/index.md` 了解 wiki 结构
+2. **Agent 查找相关页面** — 根据问题关键词搜索 wiki 目录
+3. **Agent 读取相关页面** — 使用 Read 工具获取页面内容
+4. **Agent 综合回答** — 基于 wiki 内容生成答案，使用 `[[wikilinks]]` 引用来源
+5. **Agent 可选保存** — 调用 `save_synthesis()` 保存为 synthesis 页面
 
-## 脚本职责
+## 脚本函数
 
-- 读取 `wiki/index.md`
-- 关键词匹配找相关页面（`find_relevant_pages()`）
-- Graph 扩展（如 `graph/graph.json` 存在，利用邻居扩展）
-- 返回页面路径列表
+```python
+# 查找相关页面（返回路径列表）
+find_relevant_pages(query="transformer architecture")  # 返回 ["sources/transformer-architecture.md", "concepts/SelfAttention.md", ...]
+```
 
-## Claude 职责
+## 命令行用法
 
+```bash
+# 查找相关页面（Agent 根据返回手动读取内容）
+python scripts/query.py "transformer architecture"
+```
+
+## Agent 职责
+
+- 读取 wiki/index.md 了解结构
+- 分析问题，确定需要查询的页面
 - 读取相关页面内容
-- 综合回答问题，使用 `[[wikilink]]` 引用来源
+- 综合回答，使用 `[[WikiLink]]` 引用来源页面
 - 决定是否保存为 synthesis
-- 调用 `save_synthesis(save_path, content, question)` 保存
 
 ## 输出
 
-- 综合回答（Claude 生成）
-- 引用来源列表
+- 综合回答（Agent 生成）
+- 引用来源（`[[PageName]]` wikilinks）

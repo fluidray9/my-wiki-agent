@@ -5,9 +5,9 @@ description: "检测 wiki source 页面是否落后于原始文档，通过哈�
 
 # Wiki Refresh
 
-刷新过时页面 skill，调用 `scripts/refresh.py`。
+检测并刷新过时的 wiki source 页面。**Agent 调用脚本检查，脚本对比哈希判断是否需要刷新**。
 
-## 调用
+## 命令行用法
 
 ```bash
 python scripts/refresh.py                     # 只刷新变化的 source
@@ -18,10 +18,17 @@ python scripts/refresh.py --dry-run            # 只列出需要刷新的页面
 
 ## 工作流程
 
-1. 读取 `wiki/sources/*.md` 的 frontmatter 中的 `source_file` 字段
-2. 计算 raw 文档的 SHA256 哈希
-3. 与缓存的哈希对比（缓存在 `graph/.refresh_cache.json`）
-4. 对比不一致的文档重新调用 ingest
+1. **脚本** 读取 `wiki/sources/*.md` 的 frontmatter 中的 `source_file` 字段
+2. **脚本** 计算 raw 文档的 SHA256 哈希
+3. **脚本** 与缓存哈希对比（`graph/.refresh_cache.json`）
+4. **Agent** 对比不一致的文档重新 ingest
+
+## Agent 职责
+
+- 运行 refresh 脚本查看哪些 source 需要刷新
+- 读取原始文档和现有 wiki source 页面
+- 更新 wiki source 页面内容
+- 写入更新后的文件
 
 ## 输出
 
