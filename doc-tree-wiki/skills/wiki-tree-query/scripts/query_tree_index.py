@@ -199,6 +199,31 @@ def retrieve_text(file_path: str, char_start: int, char_end: int) -> str:
     return content[char_start:char_end]
 
 
+def get_tree_index_content(kb_name: str) -> str:
+    """Get raw tree-index content for LLM to analyze."""
+    tree_index_file = KB_DIR / kb_name / "tree-index" / "tree-index.md"
+    if not tree_index_file.exists():
+        return f"[Tree index not found for KB: {kb_name}]"
+    return read_file(tree_index_file)
+
+
+def format_script_results(matches: list[dict]) -> str:
+    """Format script matching results for LLM synthesis."""
+    if not matches:
+        return "（无）"
+
+    lines = []
+    for i, m in enumerate(matches, 1):
+        lines.append(f"结果 {i}")
+        lines.append(f"📚 知识库: {m['kb']}")
+        lines.append(f"📄 参考文档: {m['file']}")
+        lines.append(f"📍 位置: 第 {m['line']} 行")
+        lines.append(f"📑 章节: {m['section']}")
+        lines.append(f"📝 原文: {m['text'][:100]}...")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def query(query_text: str, kb_list: list[str] = None, max_results: int = 10) -> list[dict]:
     """Query the tree index and return matching results.
 
