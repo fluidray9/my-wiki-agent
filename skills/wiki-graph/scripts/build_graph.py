@@ -34,7 +34,7 @@ except ImportError:
     HAS_NETWORKX = False
     print("Warning: networkx not installed. Community detection disabled. Run: pip install networkx")
 
-REPO_ROOT = Path(__file__).parent.parent
+REPO_ROOT = Path(__file__).parent.parent.parent.parent
 WIKI_DIR = REPO_ROOT / "wiki"
 GRAPH_DIR = REPO_ROOT / "graph"
 GRAPH_JSON = GRAPH_DIR / "graph.json"
@@ -227,59 +227,6 @@ def add_inferred_edges(claude_edges: list[dict]) -> None:
 
     GRAPH_JSON.write_text(json.dumps(graph_data, indent=2, ensure_ascii=False))
     print(f"  added {added} inferred edges to graph.json")
-            raw = raw.strip()
-
-            match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)
-            if match:
-                raw = match.group(0)
-            else:
-                raw = re.sub(r"^```(?:json)?\s*", "", raw)
-                raw = re.sub(r"\s*```$", "", raw)
-
-            inferred = json.loads(raw)
-            if isinstance(inferred, dict):
-                edges_list = inferred.get("edges", [])
-            elif isinstance(inferred, list):
-                edges_list = inferred
-            else:
-                edges_list = []
-
-            for rel in edges_list:
-                if isinstance(rel, dict) and "to" in rel:
-                    confidence = float(rel.get("confidence", 0.7))
-                    rel_type = rel.get("type") or ("INFERRED" if confidence >= 0.7 else "AMBIGUOUS")
-                    edge = {
-                        "id": edge_id(src, rel["to"], rel_type),
-                        "from": src,
-                        "to": rel["to"],
-                        "type": rel_type,
-                        "title": rel.get("relationship", ""),
-                        "label": "",
-                        "color": EDGE_COLORS.get(rel_type, EDGE_COLORS["INFERRED"]),
-                        "confidence": confidence,
-                    }
-                    page_edges.append(edge)
-                    new_edges.append(edge)
-                    valid_rels.append({
-                        "to": rel["to"],
-                        "relationship": rel.get("relationship", ""),
-                        "confidence": confidence,
-                        "type": rel_type,
-                    })
-
-            cache[str(p)] = {
-                "hash": sha256(full_content),
-                "edges": valid_rels,
-            }
-            append_checkpoint(src, page_edges)
-            print(f"-> Found {len(page_edges)} edges.")
-        except (json.JSONDecodeError, TypeError, ValueError) as jde:
-            print(f"-> [WARN] Invalid JSON: {str(jde)[:60]}")
-        except Exception as e:
-            err_msg = str(e).replace('\n', ' ')[:80]
-            print(f"-> [ERROR] {err_msg}")
-
-    return new_edges
 
 
 def deduplicate_edges(edges: list[dict]) -> list[dict]:

@@ -49,6 +49,7 @@ python scripts/ingest.py raw/my-article.md
 - 调用 `save_*_page()` 写入文件
 - 更新 index.md 添加条目
 - 追加到 log.md: `## [YYYY-MM-DD] ingest | <Title>`
+- **调用 wiki-graph 构建/更新图谱**
 
 ## 输出摘要
 
@@ -56,3 +57,4 @@ python scripts/ingest.py raw/my-article.md
 - 创建的页面列表
 - 检测到的矛盾（如有）
 - 验证结果（断链检查、index 覆盖）
+- 图谱更新结果（节点数、边数）

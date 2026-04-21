@@ -20,6 +20,7 @@ description: "修改 wiki 页面内容，验证 wikilinks 有效性，同步更�
    - 页面未变成空/残缺
 5. **同步 index** — 如页面标题/位置变化，更新 `wiki/index.md`
 6. **记录 log** — 添加 `## [YYYY-MM-DD] edit | <title>` 到 `wiki/log.md`
+7. **更新图谱** — 调用 `wiki-graph` 重新构建图谱（如有重大变化）
 
 ## 编辑类型
 

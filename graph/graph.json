@@ -1,0 +1,448 @@
+{
+  "nodes": [
+    {
+      "id": "overview",
+      "label": "Overview",
+      "type": "synthesis",
+      "color": "#9C27B0",
+      "path": "wiki/overview.md",
+      "markdown": "---\ntitle: \"Overview\"\ntype: synthesis\ntags: []\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# Overview\n\n*This page is maintained by the LLM. It is updated on every ingest to reflect the current synthesis across all sources.*\n\n## 当前来源\n\n### DeepSeek-V3 技术解读 (2026-04-21)\nDeepSeek-V3 是由[[幻方量化]]旗下的 [[DeepSeek AI]] 开发的开源大语言模型，于 2024 年发布。核心技术包括 [[MoE]] 架构（总参数 671B，激活参数 37B）、多头潜在注意力（MLA）和 FP8 混合精度训练。\n\n关键人物：[[梁文峰]]（创始人兼 CEO）、[[曾艳庆]]、[[谢慈航]]（核心研究员）\n\n相关技术：[[大语言模型]]、[[模型蒸馏]]、[[模型量化]]",
+      "preview": "# Overview *This page is maintained by the LLM. It is updated on every ingest to reflect the current synthesis across all sources.* ## 当前来源",
+      "group": -1,
+      "value": 9
+    },
+    {
+      "id": "sources/deepseek-v3",
+      "label": "DeepSeek-V3 技术解读",
+      "type": "source",
+      "color": "#4CAF50",
+      "path": "wiki/sources/deepseek-v3.md",
+      "markdown": "---\ntitle: \"DeepSeek-V3 技术解读\"\ntype: source\ntags: []\ndate: 2026-04-21\nsource_file: raw/deepseek-v3.md\n---\n\n## Summary\nDeepSeek-V3 是由幻方量化（High-Flyer）旗下的 DeepSeek AI 开发的开源大语言模型，于 **2024 年** 发布。该模型在多项基准测试中表现优异，超越了 Llama 3.1 405B 等竞品。\n\n## 核心技术\n- **MoE 架构**：混合专家架构，总参数 671B，激活参数 37B\n- **多头潜在注意力（MLA）**：创新注意力机制，显著降低推理成本\n- **FP8 混合精度训练**：支持 FP8 精度训练，大幅提升训练效率\n\n## 关键创新\n1. **无辅助损失负载均衡**：通过自适应策略实现专家负载均衡\n2. **双周排练（DualPipe）**：创新的并行策略，减少流水线气泡\n3. **跨节点专家并行**：支持大规模分布式训练\n\n## 补充信息\n- **Continuous Batching**：推理时采用该技术，显著提升吞吐量\n- **开源策略**：采用 MIT 许可证，完全开源\n\n## Connections\n- [[梁文峰]] — 创始人兼 CEO\n- [[曾艳庆]] — 核心研究员\n- [[谢慈航]] — 核心研究员\n- [[DeepSeekAI]] — 开发公司\n- [[幻方量化]] — 母公司\n- [[MoE]] — 核心架构\n- [[大语言模型]] — 模型类别\n- [[模型蒸馏]] — 相关技术\n- [[模型量化]] — 相关技术\n\n## Contradictions\n- None",
+      "preview": "## Summary DeepSeek-V3 是由幻方量化（High-Flyer）旗下的 DeepSeek AI 开发的开源大语言模型，于 **2024 年** 发布。该模型在多项基准测试中表现优异，超越了 Llama 3.1 405B 等竞品。 ## 核心技术",
+      "group": -1,
+      "value": 10
+    },
+    {
+      "id": "concepts/大语言模型",
+      "label": "大语言模型",
+      "type": "concept",
+      "color": "#FF9800",
+      "path": "wiki/concepts/大语言模型.md",
+      "markdown": "---\ntitle: \"大语言模型\"\ntype: concept\ntags: [ai, nlp]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 大语言模型\n\n大语言模型（Large Language Model，LLM）是通过大规模预训练学习语言能力的深度学习模型。\n\n## 关键技术\n- Transformer 架构\n- 自回归生成\n- 指令微调\n- RLHF（人类反馈强化学习）\n\n## 代表模型\n- [[DeepSeekAI]] 的 DeepSeek-V3\n- OpenAI 的 GPT 系列\n- Meta 的 Llama 系列\n\n## Connections\n- [[MoE]] — 一种 LLM 架构优化方法\n- [[模型蒸馏]] — 模型压缩技术\n- [[模型量化]] — 模型压缩技术",
+      "preview": "# 大语言模型 大语言模型（Large Language Model，LLM）是通过大规模预训练学习语言能力的深度学习模型。 ## 关键技术",
+      "group": -1,
+      "value": 7
+    },
+    {
+      "id": "concepts/MoE",
+      "label": "MoE",
+      "type": "concept",
+      "color": "#FF9800",
+      "path": "wiki/concepts/MoE.md",
+      "markdown": "---\ntitle: \"MoE\"\ntype: concept\ntags: [architecture, neural-network]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# MoE（混合专家模型）\n\n混合专家模型（Mixture of Experts）是一种神经网络架构，通过稀疏激活的方式提高模型容量和效率。\n\n## 工作原理\n- 模型包含多个\"专家\"网络\n- 每个输入只激活部分专家\n- 通过路由机制选择激活哪些专家\n\n## DeepSeek-V3 的 MoE\n- 总参数：671B\n- 激活参数：37B\n- 显著降低了计算成本\n\n## Connections\n- [[DeepSeekAI]] — 使用 MoE 架构\n- [[大语言模型]] — MoE 用于 LLM\n- [[模型蒸馏]] — 相关技术",
+      "preview": "# MoE（混合专家模型） 混合专家模型（Mixture of Experts）是一种神经网络架构，通过稀疏激活的方式提高模型容量和效率。 ## 工作原理",
+      "group": -1,
+      "value": 6
+    },
+    {
+      "id": "concepts/模型量化",
+      "label": "模型量化",
+      "type": "concept",
+      "color": "#FF9800",
+      "path": "wiki/concepts/模型量化.md",
+      "markdown": "---\ntitle: \"模型量化\"\ntype: concept\ntags: [technique, ml]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 模型量化\n\n模型量化（Model Quantization）是一种通过降低权重精度来减少模型大小和加速推理的技术。\n\n## 量化精度\n- FP16（半精度）\n- INT8（8位整数）\n- INT4（4位整数）\n\n## DeepSeek-V3 的量化\n- 支持 FP8 混合精度训练\n- 大幅提升训练效率\n\n## Connections\n- [[大语言模型]] — 可量化的对象\n- [[模型蒸馏]] — 另一种模型压缩技术",
+      "preview": "# 模型量化 模型量化（Model Quantization）是一种通过降低权重精度来减少模型大小和加速推理的技术。 ## 量化精度",
+      "group": -1,
+      "value": 5
+    },
+    {
+      "id": "concepts/模型蒸馏",
+      "label": "模型蒸馏",
+      "type": "concept",
+      "color": "#FF9800",
+      "path": "wiki/concepts/模型蒸馏.md",
+      "markdown": "---\ntitle: \"模型蒸馏\"\ntype: concept\ntags: [technique, ml]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 模型蒸馏\n\n模型蒸馏（Model Distillation）是一种将大型模型知识迁移到小型模型的技术。\n\n## 原理\n- 使用大模型（教师模型）生成软标签\n- 小模型（学生模型）学习这些软标签\n- 保留大部分性能的同时大幅减少参数量\n\n## 应用\n- 边缘设备部署\n- 降低推理成本\n- 模型压缩\n\n## Connections\n- [[大语言模型]] — 可蒸馏的对象\n- [[模型量化]] — 另一种模型压缩技术",
+      "preview": "# 模型蒸馏 模型蒸馏（Model Distillation）是一种将大型模型知识迁移到小型模型的技术。 ## 原理",
+      "group": -1,
+      "value": 6
+    },
+    {
+      "id": "entities/幻方量化",
+      "label": "幻方量化",
+      "type": "entity",
+      "color": "#2196F3",
+      "path": "wiki/entities/幻方量化.md",
+      "markdown": "---\ntitle: \"幻方量化\"\ntype: entity\ntags: [company, quant]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 幻方量化\n\n幻方量化（High-Flyer）是一家中国量化对冲基金，旗下拥有 DeepSeek AI。\n\n## 业务范围\n- 量化投资\n- 人工智能研发\n\n## Connections\n- [[梁文峰]] — 创始人\n- [[DeepSeekAI]] — 旗下公司",
+      "preview": "# 幻方量化 幻方量化（High-Flyer）是一家中国量化对冲基金，旗下拥有 DeepSeek AI。 ## 业务范围",
+      "group": -1,
+      "value": 5
+    },
+    {
+      "id": "entities/谢慈航",
+      "label": "谢慈航",
+      "type": "entity",
+      "color": "#2196F3",
+      "path": "wiki/entities/谢慈航.md",
+      "markdown": "---\ntitle: \"谢慈航\"\ntype: entity\ntags: [person, researcher]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 谢慈航\n\nDeepSeek 核心研究员，参与 DeepSeek-V3 的研发。\n\n## Connections\n- [[梁文峰]] — DeepSeek 创始人\n- [[曾艳庆]] — DeepSeek 核心研究员\n- [[DeepSeekAI]] — 所属公司",
+      "preview": "# 谢慈航 DeepSeek 核心研究员，参与 DeepSeek-V3 的研发。 ## Connections",
+      "group": -1,
+      "value": 6
+    },
+    {
+      "id": "entities/DeepSeekAI",
+      "label": "DeepSeek AI",
+      "type": "entity",
+      "color": "#2196F3",
+      "path": "wiki/entities/DeepSeekAI.md",
+      "markdown": "---\ntitle: \"DeepSeek AI\"\ntype: entity\ntags: [company, ai]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# DeepSeek AI\n\n由中国幻方量化创立的人工智能公司，专注于大语言模型的研发。\n\n## 主要产品\n- DeepSeek-V3：开源大语言模型，2024 年发布\n- DeepSeek-Coder：代码生成模型\n\n## 核心技术\n- MoE 架构\n- MLA（多头潜在注意力）\n- FP8 混合精度训练\n\n## Connections\n- [[梁文峰]] — 创始人兼 CEO\n- [[曾艳庆]] — 核心研究员\n- [[谢慈航]] — 核心研究员\n- [[幻方量化]] — 母公司",
+      "preview": "# DeepSeek AI 由中国幻方量化创立的人工智能公司，专注于大语言模型的研发。 ## 主要产品",
+      "group": -1,
+      "value": 8
+    },
+    {
+      "id": "entities/曾艳庆",
+      "label": "曾艳庆",
+      "type": "entity",
+      "color": "#2196F3",
+      "path": "wiki/entities/曾艳庆.md",
+      "markdown": "---\ntitle: \"曾艳庆\"\ntype: entity\ntags: [person, researcher]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 曾艳庆\n\nDeepSeek 核心研究员，参与 DeepSeek-V3 的研发。\n\n## Connections\n- [[梁文峰]] — DeepSeek 创始人\n- [[谢慈航]] — DeepSeek 核心研究员\n- [[DeepSeekAI]] — 所属公司",
+      "preview": "# 曾艳庆 DeepSeek 核心研究员，参与 DeepSeek-V3 的研发。 ## Connections",
+      "group": -1,
+      "value": 6
+    },
+    {
+      "id": "entities/梁文峰",
+      "label": "梁文峰",
+      "type": "entity",
+      "color": "#2196F3",
+      "path": "wiki/entities/梁文峰.md",
+      "markdown": "---\ntitle: \"梁文峰\"\ntype: entity\ntags: [person, founder]\nsources: [deepseek-v3]\nlast_updated: 2026-04-21\n---\n\n# 梁文峰\n\nDeepSeek 创始人兼 CEO，幻方量化（High-Flyer）创始人。\n\n## Key Contributions\n- 创立 DeepSeek AI\n- 创立幻方量化\n- 推动开源大语言模型发展\n\n## Connections\n- [[曾艳庆]] — DeepSeek 核心研究员\n- [[谢慈航]] — DeepSeek 核心研究员\n- [[DeepSeekAI]] — 创立的公司\n- [[幻方量化]] — 创立的公司",
+      "preview": "# 梁文峰 DeepSeek 创始人兼 CEO，幻方量化（High-Flyer）创始人。 ## Key Contributions",
+      "group": -1,
+      "value": 7
+    }
+  ],
+  "edges": [
+    {
+      "id": "overview->entities/曾艳庆:EXTRACTED",
+      "from": "overview",
+      "to": "entities/曾艳庆",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->entities/梁文峰:EXTRACTED",
+      "from": "overview",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/模型量化:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/模型量化",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/模型蒸馏:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/模型蒸馏",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->entities/谢慈航:EXTRACTED",
+      "from": "overview",
+      "to": "entities/谢慈航",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/MoE:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/MoE",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->entities/幻方量化:EXTRACTED",
+      "from": "overview",
+      "to": "entities/幻方量化",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/大语言模型:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/大语言模型",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->concepts/模型量化:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "concepts/模型量化",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->entities/曾艳庆:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "entities/曾艳庆",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->entities/梁文峰:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->entities/DeepSeekAI:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "entities/DeepSeekAI",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->concepts/模型蒸馏:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "concepts/模型蒸馏",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->entities/谢慈航:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "entities/谢慈航",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->concepts/MoE:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "concepts/MoE",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->entities/幻方量化:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "entities/幻方量化",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/deepseek-v3->concepts/大语言模型:EXTRACTED",
+      "from": "sources/deepseek-v3",
+      "to": "concepts/大语言模型",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/大语言模型->concepts/模型量化:EXTRACTED",
+      "from": "concepts/大语言模型",
+      "to": "concepts/模型量化",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/大语言模型->concepts/MoE:EXTRACTED",
+      "from": "concepts/大语言模型",
+      "to": "concepts/MoE",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/大语言模型->entities/DeepSeekAI:EXTRACTED",
+      "from": "concepts/大语言模型",
+      "to": "entities/DeepSeekAI",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/大语言模型->concepts/模型蒸馏:EXTRACTED",
+      "from": "concepts/大语言模型",
+      "to": "concepts/模型蒸馏",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/MoE->entities/DeepSeekAI:EXTRACTED",
+      "from": "concepts/MoE",
+      "to": "entities/DeepSeekAI",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/MoE->concepts/模型蒸馏:EXTRACTED",
+      "from": "concepts/MoE",
+      "to": "concepts/模型蒸馏",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/模型量化->concepts/模型蒸馏:EXTRACTED",
+      "from": "concepts/模型量化",
+      "to": "concepts/模型蒸馏",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/幻方量化->entities/梁文峰:EXTRACTED",
+      "from": "entities/幻方量化",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/幻方量化->entities/DeepSeekAI:EXTRACTED",
+      "from": "entities/幻方量化",
+      "to": "entities/DeepSeekAI",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/谢慈航->entities/曾艳庆:EXTRACTED",
+      "from": "entities/谢慈航",
+      "to": "entities/曾艳庆",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/谢慈航->entities/梁文峰:EXTRACTED",
+      "from": "entities/谢慈航",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/谢慈航->entities/DeepSeekAI:EXTRACTED",
+      "from": "entities/谢慈航",
+      "to": "entities/DeepSeekAI",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/DeepSeekAI->entities/曾艳庆:EXTRACTED",
+      "from": "entities/DeepSeekAI",
+      "to": "entities/曾艳庆",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/DeepSeekAI->entities/梁文峰:EXTRACTED",
+      "from": "entities/DeepSeekAI",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "entities/曾艳庆->entities/梁文峰:EXTRACTED",
+      "from": "entities/曾艳庆",
+      "to": "entities/梁文峰",
+      "type": "EXTRACTED",
+      "color": "#555555",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    }
+  ],
+  "built": "2026-04-21"
+}
