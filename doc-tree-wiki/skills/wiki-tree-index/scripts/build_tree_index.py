@@ -15,7 +15,7 @@ from datetime import date
 
 
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
-RAW_DIR = REPO_ROOT / "knowledge-base"
+KB_DIR = REPO_ROOT / "knowledge-base"
 
 
 def read_file(path: Path) -> str:
@@ -96,7 +96,7 @@ def extract_document_structure(file_path: Path, kb_name: str) -> dict:
 
 def get_all_raw_files(kb_name: str) -> list[Path]:
     """Get all .md files from KB's raw directory."""
-    kb_raw_dir = RAW_DIR / kb_name / "raw"
+    kb_raw_dir = KB_DIR / kb_name / "raw"
     if not kb_raw_dir.exists():
         print(f"Error: raw/ directory not found at {kb_raw_dir}")
         sys.exit(1)
@@ -291,11 +291,11 @@ if __name__ == "__main__":
     if args.dry_run:
         build_tree_index(kb_name)
     else:
-        # Generate tree index directly (no LLM needed)
-        tree_index_dir = RAW_DIR / kb_name / "tree-index"
-        tree_index_dir.mkdir(parents=True, exist_ok=True)
+        # Generate tree index to knowledge-base/{kb}/tree-index/
+        kb_tree_index_dir = KB_DIR / kb_name / "tree-index"
+        kb_tree_index_dir.mkdir(parents=True, exist_ok=True)
         content = generate_tree_index_content(docs_structure, kb_name)
-        tree_index_file = tree_index_dir / "tree-index.md"
+        tree_index_file = kb_tree_index_dir / "tree-index.md"
         tree_index_file.write_text(content, encoding="utf-8")
         print(f"Generated: {tree_index_file}")
         print(f"KB: {kb_name}")

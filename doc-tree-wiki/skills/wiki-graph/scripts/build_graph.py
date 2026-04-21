@@ -36,6 +36,9 @@ except ImportError:
 
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
 KB_DIR = REPO_ROOT / "knowledge-base"
+# Support both knowledge-base/{kb} and direct layout
+WIKI_ROOT = REPO_ROOT / "wiki"
+GRAPH_ROOT = REPO_ROOT / "graph"
 SCHEMA_FILE = REPO_ROOT / "wiki-shared" / "shared-instructions.md"
 
 
@@ -50,12 +53,16 @@ INFERRED_EDGES_FILE = None
 LOG_FILE = None
 
 
-def set_kb_paths(kb_name: str):
-    """Set KB-specific paths."""
+def set_kb_paths(kb_name: str = None):
+    """Set KB-specific paths. Supports both knowledge-base/{kb}/ and direct layouts."""
     global KB_NAME, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, GRAPH_HTML, CACHE_FILE, INFERRED_EDGES_FILE, LOG_FILE
-    KB_NAME = kb_name
-    WIKI_DIR = KB_DIR / kb_name / "wiki"
-    GRAPH_DIR = KB_DIR / kb_name / "graph"
+    KB_NAME = kb_name or "default"
+    if KB_DIR.exists() and kb_name:
+        WIKI_DIR = KB_DIR / kb_name / "wiki"
+        GRAPH_DIR = KB_DIR / kb_name / "graph"
+    else:
+        WIKI_DIR = WIKI_ROOT
+        GRAPH_DIR = GRAPH_ROOT
     GRAPH_JSON = GRAPH_DIR / "graph.json"
     GRAPH_HTML = GRAPH_DIR / "graph.html"
     CACHE_FILE = GRAPH_DIR / ".cache.json"
@@ -1118,7 +1125,7 @@ def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = Fa
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build LLM Wiki knowledge graph")
-    parser.add_argument("--kb", required=True, help="Knowledge base name (e.g., 'deepseek-kb')")
+    parser.add_argument("--kb", help="Knowledge base name (e.g., 'deepseek-kb'). If not provided, uses default wiki layout.")
     parser.add_argument("--no-infer", action="store_true", help="Skip semantic inference (faster)")
     parser.add_argument("--open", action="store_true", help="Open graph.html in browser")
     parser.add_argument("--clean", action="store_true", help="Delete checkpoint and force full re-inference")

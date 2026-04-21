@@ -33,7 +33,9 @@ from pathlib import Path
 from datetime import date
 
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
+# Support both knowledge-base/{kb}/wiki/ and direct wiki/ layouts
 KB_DIR = REPO_ROOT / "knowledge-base"
+WIKI_ROOT = REPO_ROOT / "wiki"
 
 # Minimum content length (excluding frontmatter) to not be considered a stub
 STUB_THRESHOLD_CHARS = 100
@@ -43,20 +45,30 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+def get_wiki_dir(kb_name: str = None) -> Path:
+    """Get wiki directory, supporting both layouts."""
+    if KB_DIR.exists() and kb_name:
+        return KB_DIR / kb_name / "wiki"
+    return WIKI_ROOT
+
+
 def list_knowledge_bases() -> list[str]:
     """List all knowledge base names."""
-    if not KB_DIR.exists():
-        return []
-    return [kb.name for kb in KB_DIR.iterdir() if kb.is_dir()]
+    if KB_DIR.exists():
+        return [kb.name for kb in KB_DIR.iterdir() if kb.is_dir()]
+    # Try to infer KB name from wiki directory structure
+    if WIKI_ROOT.exists():
+        return ["default"]
+    return []
 
 
-def get_kb_wiki_paths(kb_name: str) -> dict:
-    """Get wiki paths for a specific KB."""
-    kb_wiki_dir = KB_DIR / kb_name / "wiki"
+def get_kb_wiki_paths(kb_name: str = None) -> dict:
+    """Get wiki paths. Supports both layout patterns."""
+    wiki_dir = get_wiki_dir(kb_name)
     return {
-        "wiki_dir": kb_wiki_dir,
-        "index_file": kb_wiki_dir / "index.md",
-        "log_file": kb_wiki_dir / "log.md",
+        "wiki_dir": wiki_dir,
+        "index_file": wiki_dir / "index.md",
+        "log_file": wiki_dir / "log.md",
     }
 
 
@@ -79,16 +91,21 @@ def strip_frontmatter(content: str) -> str:
 
 # ── Check: Empty / Stub files ───────────────────────────────────────
 
-def check_empty_files(pages: list[Path], kb_name: str) -> list[dict]:
+def check_empty_files(pages: list[Path], kb_name: str = None) -> list[dict]:
     """Find wiki pages that are empty or contain only frontmatter / minimal content."""
     results = []
+    wiki_dir = get_wiki_dir(kb_name)
     for p in pages:
         raw = read_file(p)
         body = strip_frontmatter(raw)
         if len(body) < STUB_THRESHOLD_CHARS:
+            try:
+                rel_path = p.relative_to(wiki_dir)
+            except ValueError:
+                rel_path = p
             results.append({
-                "path": str(p.relative_to(KB_DIR / kb_name)),
-                "kb": kb_name,
+                "path": str(rel_path),
+                "kb": kb_name or "default",
                 "total_bytes": len(raw),
                 "body_bytes": len(body),
                 "status": "empty" if len(body) == 0 else "stub",
@@ -108,7 +125,7 @@ def _parse_index_links(index_content: str) -> set[str]:
     return set(re.findall(r'\[.*?\]\(([^)]+\.md)\)', index_content))
 
 
-def check_index_sync(pages: list[Path], kb_name: str) -> dict:
+def check_index_sync(pages: list[Path], kb_name: str = None) -> dict:
     """Compare wiki/index.md entries against actual files on disk."""
     kb_paths = get_kb_wiki_paths(kb_name)
     wiki_dir = kb_paths["wiki_dir"]
@@ -131,12 +148,17 @@ def check_index_sync(pages: list[Path], kb_name: str) -> dict:
         if p.name not in meta_pages:
             disk_paths.add(p.resolve())
 
-    in_index_not_on_disk = [
-        str(p.relative_to(KB_DIR / kb_name)) for p in sorted(index_paths - disk_paths)
-    ]
-    on_disk_not_in_index = [
-        str(p.relative_to(KB_DIR / kb_name)) for p in sorted(disk_paths - index_paths)
-    ]
+    try:
+        in_index_not_on_disk = [
+            str(p.relative_to(wiki_dir)) for p in sorted(index_paths - disk_paths)
+        ]
+        on_disk_not_in_index = [
+            str(p.relative_to(wiki_dir)) for p in sorted(disk_paths - index_paths)
+        ]
+    except ValueError:
+        # Cross-device or other relative path issues
+        in_index_not_on_disk = list(index_paths - disk_paths)
+        on_disk_not_in_index = list(disk_paths - index_paths)
 
     return {
         "in_index_not_on_disk": in_index_not_on_disk,
@@ -158,7 +180,7 @@ def _parse_log_entries(log_content: str) -> set[str]:
     )
 
 
-def check_log_coverage(pages: list[Path], kb_name: str) -> list[dict]:
+def check_log_coverage(pages: list[Path], kb_name: str = None) -> list[dict]:
     """Find source pages that have no corresponding ingest entry in log.md."""
     kb_paths = get_kb_wiki_paths(kb_name)
     log_file = kb_paths["log_file"]
@@ -180,9 +202,13 @@ def check_log_coverage(pages: list[Path], kb_name: str) -> list[dict]:
         fm_title = title_match.group(1).strip().lower() if title_match else ""
 
         if slug not in logged_titles and fm_title not in logged_titles:
+            try:
+                rel_path = p.relative_to(wiki_dir)
+            except ValueError:
+                rel_path = p
             missing.append({
-                "path": str(p.relative_to(KB_DIR / kb_name)),
-                "kb": kb_name,
+                "path": str(rel_path),
+                "kb": kb_name or "default",
                 "slug": p.stem,
                 "title": fm_title or p.stem,
             })
@@ -322,9 +348,8 @@ if __name__ == "__main__":
         print(report)
 
         if args.save:
-            # Save to first KB's wiki directory
-            report_dir = KB_DIR / kb_list[0] / "wiki"
-            report_dir.mkdir(parents=True, exist_ok=True)
-            report_path = report_dir / "health-report.md"
+            # Save to wiki directory
+            wiki_dir = WIKI_ROOT if WIKI_ROOT.exists() else REPO_ROOT
+            report_path = wiki_dir / "health-report.md"
             report_path.write_text(report, encoding="utf-8")
-            print(f"\nSaved: {report_path.relative_to(REPO_ROOT)}")
+            print(f"\nSaved: {report_path}")

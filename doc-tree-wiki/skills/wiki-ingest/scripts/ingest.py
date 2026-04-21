@@ -20,6 +20,7 @@ for Claude to write the generated content.
 """
 
 import sys
+import shutil
 import hashlib
 import re
 import json
@@ -44,6 +45,35 @@ def write_file(path: Path, content: str):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     print(f"  wrote: {path.relative_to(REPO_ROOT)}")
+
+
+def copy_source_to_raw(source_path: str, kb_name: str) -> list[str]:
+    """Copy source files to knowledge-base/{kb}/raw/. Skip if already exists.
+
+    Returns list of copied file paths.
+    """
+    src = Path(source_path)
+    dst_dir = KB_DIR / kb_name / "raw"
+    dst_dir.mkdir(parents=True, exist_ok=True)
+
+    copied = []
+    paths_to_copy = []
+
+    if src.is_file():
+        paths_to_copy = [src]
+    elif src.is_dir():
+        paths_to_copy = list(src.rglob("*.md"))
+
+    for src_file in paths_to_copy:
+        dst_file = dst_dir / src_file.name
+        if dst_file.exists():
+            print(f"  skip (exists): {dst_file.relative_to(KB_DIR)}")
+        else:
+            shutil.copy2(src_file, dst_file)
+            print(f"  copied: {src_file.name} -> {dst_file.relative_to(KB_DIR)}")
+            copied.append(src_file.name)
+
+    return copied
 
 
 def infer_kb_name(source_path: str) -> str:
@@ -221,6 +251,12 @@ def ingest(source_path: str, ctx: IngestContext):
     if not source.exists():
         print(f"Error: file not found: {source_path}")
         sys.exit(1)
+
+    # Copy source files to KB raw/ directory
+    print(f"\nCopying sources to KB raw/...")
+    copied = copy_source_to_raw(source_path, ctx.kb_name)
+    if copied:
+        print(f"  {len(copied)} file(s) copied")
 
     print(f"\nIngesting: {source.name}")
     print(f"  KB: {ctx.kb_name}")

@@ -17,6 +17,8 @@ import json
 
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
 KB_DIR = REPO_ROOT / "knowledge-base"
+# Support both knowledge-base/ and direct tree-index/ layouts
+TREE_INDEX_ROOT = REPO_ROOT / "tree-index"
 
 
 def read_file(path: Path) -> str:
@@ -66,6 +68,9 @@ def parse_tree_index(kb_name: str) -> list[dict]:
     if not tree_index_file.exists():
         # Try intermediate tree-index.md if final doesn't exist
         tree_index_file = KB_DIR / kb_name / "tree-index" / "tree-index.md"
+    # Also support direct tree-index/ layout
+    if not tree_index_file.exists():
+        tree_index_file = TREE_INDEX_ROOT / "tree-index.md"
 
     if not tree_index_file.exists():
         print(f"Warning: Tree index not found for KB: {kb_name} at {tree_index_file}")
