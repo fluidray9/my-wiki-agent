@@ -120,7 +120,7 @@ def find_relevant_pages(question: str, wiki_dir: Path, index_content: str) -> li
     overview = wiki_dir / "overview.md"
     if overview.exists() and overview not in relevant:
         relevant.insert(0, overview)
-    return relevant[:15]  # cap to avoid context overflow
+    return relevant[:5]  # 每个 KB 最多 5 个页面
 
 
 def query(question: str, kb_list: list[str] = None) -> list[dict]:

@@ -281,7 +281,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Query the tree index")
     parser.add_argument("query", help="Query text to search for")
     parser.add_argument("--kb", action="append", help="Knowledge base name (can be specified multiple times). If not provided, searches all KBs.")
-    parser.add_argument("--max-results", type=int, default=10, help="Maximum number of results")
+    parser.add_argument("--max-results", type=int, default=5, help="每个KB最多返回结果数")
     args = parser.parse_args()
 
     kb_list = args.kb if args.kb else None
