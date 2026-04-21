@@ -165,15 +165,33 @@ def query(question: str, kb_list: list[str] = None) -> list[dict]:
         print(f"{'='*60}")
         print(f"找到 {len(relevant_pages)} 个相关页面:")
         for i, p in enumerate(relevant_pages, 1):
-            # Try to read source_file from frontmatter
+            # Try to read source_file or sources from frontmatter
             content = read_file(p)
             source_file = "N/A"
+            # Check for source_file (single value)
             match = re.search(r'^source_file:\s*(.+)$', content, re.MULTILINE)
             if match:
                 source_file = match.group(1).strip()
+            # Check for sources (plural, YAML list - take first entry)
+            if source_file == "N/A":
+                match = re.search(r'^sources:\s*-\s*(.+)$', content, re.MULTILINE)
+                if match:
+                    source_file = match.group(1).strip()
             rel_path = p.relative_to(wiki_dir)
-            print(f"  {i}. {rel_path}")
-            print(f"     来源: {source_file}")
+            # Get page type from frontmatter
+            page_type = "N/A"
+            type_match = re.search(r'^type:\s*(.+)$', content, re.MULTILINE)
+            if type_match:
+                page_type = type_match.group(1).strip()
+
+            print(f"\n{'='*60}")
+            print(f"结果 {i}")
+            print(f"{'='*60}")
+            print(f"📚 知识库: {kb_name}")
+            print(f"📄 页面: {rel_path}")
+            print(f"📑 类型: {page_type}")
+            print(f"   来源: {source_file}")
+            print(f"{'-'*60}")
 
         all_results.append({
             "kb": kb_name,
