@@ -160,9 +160,20 @@ def query(question: str, kb_list: list[str] = None) -> list[dict]:
             continue
 
         # Print found pages for Claude
-        print(f"  KB '{kb_name}': found {len(relevant_pages)} relevant pages:")
-        for p in relevant_pages:
-            print(f"    - {p.relative_to(wiki_dir)}")
+        print(f"\n{'='*60}")
+        print(f"📚 知识库: {kb_name}")
+        print(f"{'='*60}")
+        print(f"找到 {len(relevant_pages)} 个相关页面:")
+        for i, p in enumerate(relevant_pages, 1):
+            # Try to read source_file from frontmatter
+            content = read_file(p)
+            source_file = "N/A"
+            match = re.search(r'^source_file:\s*(.+)$', content, re.MULTILINE)
+            if match:
+                source_file = match.group(1).strip()
+            rel_path = p.relative_to(wiki_dir)
+            print(f"  {i}. {rel_path}")
+            print(f"     来源: {source_file}")
 
         all_results.append({
             "kb": kb_name,

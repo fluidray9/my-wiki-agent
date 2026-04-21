@@ -225,14 +225,20 @@ def query(query_text: str, kb_list: list[str] = None, max_results: int = 10) -> 
 
     results = []
     for i, match in enumerate(matches, 1):
-        print(f"\n--- Result {i} (KB: {match['kb']}) ---")
-        print(f"Section: {match['section']}")
-        print(f"File: {match['file']} (line {match['line']})")
-        print(f"Index text: {match['text'][:100]}...")
-
         # Retrieve actual text from raw file
         actual_text = retrieve_text(match["file"], match["char_start"], match["char_end"])
-        print(f"Retrieved: {actual_text[:200]}...")
+
+        print(f"\n{'='*60}")
+        print(f"结果 {i}")
+        print(f"{'='*60}")
+        print(f"📚 知识库: {match['kb']}")
+        print(f"📄 参考文档: {match['file']}")
+        print(f"📍 位置: 第 {match['line']} 行")
+        print(f"📑 章节: {match['section']}")
+        print(f"{'-'*60}")
+        print(f"内容:\n{actual_text}")
+        print(f"{'='*60}")
+        print()
 
         results.append({
             "kb": match["kb"],
