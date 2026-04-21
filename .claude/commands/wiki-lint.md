@@ -2,6 +2,8 @@ Health-check the LLM Wiki for issues.
 
 Usage: /wiki-lint
 
+You can optionally specify --kb KB_NAME to lint a specific knowledge base. Without --kb, checks all knowledge bases.
+
 Follow the Lint Workflow defined in CLAUDE.md:
 
 Structural checks (use Grep and Glob tools):
@@ -14,6 +16,6 @@ Semantic checks (read and reason over page content):
 5. Stale summaries — pages not updated after newer sources changed the picture
 6. Data gaps — important questions the wiki can't answer; suggest specific sources to find
 
-Output a structured markdown lint report. At the end, ask if the user wants it saved to wiki/lint-report.md.
+Output a structured markdown lint report. At the end, ask if the user wants it saved to knowledge-base/{kb}/wiki/lint-report.md.
 
-Append to wiki/log.md: ## [today's date] lint | Wiki health check
+Append to knowledge-base/{kb}/wiki/log.md: ## [today's date] lint | Wiki health check
