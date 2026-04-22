@@ -5,8 +5,8 @@ from __future__ import annotations
 Lint the LLM Wiki for health issues.
 
 Usage:
-    python tools/lint.py
-    python tools/lint.py --save          # save lint report to wiki/lint-report.md
+    python scripts/lint.py
+    python scripts/lint.py --save        # save lint report to wiki/lint-report.md
 
 Checks:
   - Orphan pages (no inbound wikilinks from other pages)
@@ -28,18 +28,49 @@ from datetime import date
 import os
 
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
-WIKI_DIR = REPO_ROOT / "wiki"
-GRAPH_DIR = REPO_ROOT / "graph"
-GRAPH_JSON = GRAPH_DIR / "graph.json"
-LOG_FILE = WIKI_DIR / "log.md"
+KB_DIR = REPO_ROOT / "knowledge-base"
+WIKI_ROOT = REPO_ROOT / "wiki"
 SCHEMA_FILE = REPO_ROOT / "wiki-shared" / "shared-instructions.md"
+
+# KB-aware path globals (set by main based on --kb)
+KB_NAME = None
+WIKI_DIR = None
+GRAPH_DIR = None
+GRAPH_JSON = None
+LOG_FILE = None
+
+
+def set_kb_paths(kb_name: str = None):
+    """Set KB-specific paths. Supports both knowledge-base/{kb}/ and direct layouts."""
+    global KB_NAME, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, LOG_FILE
+    KB_NAME = kb_name or "default"
+    if KB_DIR.exists() and kb_name:
+        WIKI_DIR = KB_DIR / kb_name / "wiki"
+        GRAPH_DIR = KB_DIR / kb_name / "graph"
+    else:
+        WIKI_DIR = WIKI_ROOT
+        GRAPH_DIR = REPO_ROOT / "graph"
+    GRAPH_JSON = GRAPH_DIR / "graph.json"
+    LOG_FILE = WIKI_DIR / "log.md"
 
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+def infer_kb_name_from_path(path_str: str) -> str | None:
+    """Infer KB name from a path string."""
+    parts = Path(path_str).parts
+    if "knowledge-base" in parts:
+        kb_idx = parts.index("knowledge-base")
+        if len(parts) > kb_idx + 1:
+            return parts[kb_idx + 1]
+    return None
+
+
 def all_wiki_pages() -> list[Path]:
+    if WIKI_DIR is None:
+        set_kb_paths()
     return [p for p in WIKI_DIR.rglob("*.md")
             if p.name not in ("index.md", "log.md", "lint-report.md")]
 
@@ -50,6 +81,8 @@ def extract_wikilinks(content: str) -> list[str]:
 
 def page_name_to_path(name: str) -> list[Path]:
     """Try to resolve a [[WikiLink]] to a file path."""
+    if WIKI_DIR is None:
+        set_kb_paths()
     candidates = []
     for p in all_wiki_pages():
         if p.stem.lower() == name.lower() or p.stem == name:
@@ -309,7 +342,6 @@ def run_lint():
 
     if missing_entities:
         report_lines.append("### Missing Entity Pages (mentioned 3+ times but no page)")
-        report_lines.append("> [!warning] Action Required\n> Run `python3 generate_missing_entities.py` to automatically materialize these missing hubs.")
         for name in missing_entities:
             report_lines.append(f"- `[[{name}]]`")
         report_lines.append("")
@@ -335,11 +367,11 @@ def run_lint():
 
     if not graph_data:
         report_lines.append("> [!tip]")
-        report_lines.append("> Graph-aware checks were skipped. Run `python tools/build_graph.py` first, then re-run lint.")
+        report_lines.append(f"> Graph-aware checks were skipped. Run `python scripts/build_graph.py --kb {KB_NAME} --report` first, then re-run lint.")
         report_lines.append("")
     elif not graph_data.get("nodes") or not graph_data.get("edges"):
         report_lines.append("> [!tip]")
-        report_lines.append("> Graph data is empty. Ingest sources and run `python tools/build_graph.py` to populate.")
+        report_lines.append(f"> Graph data is empty. Ingest sources and run `python scripts/build_graph.py --kb {KB_NAME} --report` to populate.")
         report_lines.append("")
     else:
         # Hub stubs
@@ -392,7 +424,7 @@ def run_lint():
     report_lines.append("- Data gaps (questions the wiki can't answer)")
     report_lines.append("- Concepts lacking depth")
     report_lines.append("")
-    report_lines.append("Run `python scripts/lint.py --save` and check wiki/lint-report.md for the full report.")
+    report_lines.append("Run `python scripts/lint.py --save --kb KB_NAME` and check wiki/lint-report.md for the full report.")
 
     report = "\n".join(report_lines)
     print("\n" + report)
@@ -406,9 +438,11 @@ def append_log(entry: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Lint the LLM Wiki")
-    parser.add_argument("--save", action="store_true", help="Save lint report to wiki/lint-report.md")
+    parser.add_argument("--kb", help="Knowledge base name (e.g., 'deepseek-kb'). If not provided, uses default layout.")
+    parser.add_argument("--save", action="store_true", help="Save lint report to KB's wiki/lint-report.md")
     args = parser.parse_args()
 
+    set_kb_paths(args.kb)
     report = run_lint()
 
     if args.save and report:
@@ -417,4 +451,4 @@ if __name__ == "__main__":
         print(f"\nSaved: {report_path.relative_to(REPO_ROOT)}")
 
     today = date.today().isoformat()
-    append_log(f"## [{today}] lint | Wiki health check\n\nRan lint. See lint-report.md for details.")
+    append_log(f"## [{today}] lint | {KB_NAME}\n\nRan lint. See lint-report.md for details.")

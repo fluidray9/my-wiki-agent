@@ -181,7 +181,7 @@ def _parse_log_entries(log_content: str) -> set[str]:
 
 
 def check_log_coverage(pages: list[Path], kb_name: str = None) -> list[dict]:
-    """Find source pages that have no corresponding ingest entry in log.md."""
+    """Find source pages (type: source) that have no corresponding ingest entry in log.md."""
     kb_paths = get_kb_wiki_paths(kb_name)
     log_file = kb_paths["log_file"]
     wiki_dir = kb_paths["wiki_dir"]
@@ -189,18 +189,18 @@ def check_log_coverage(pages: list[Path], kb_name: str = None) -> list[dict]:
     log_content = read_file(log_file)
     logged_titles = _parse_log_entries(log_content)
 
-    source_dir = wiki_dir / "sources"
-    if not source_dir.exists():
-        return []
-
     missing = []
-    for p in sorted(source_dir.glob("*.md")):
-        slug = p.stem.lower().replace("-", " ").replace("_", " ")
-
+    for p in sorted(pages):
         content = read_file(p)
+        # Only check pages with type: source
+        type_match = re.search(r'^type:\s*(\S+)', content, re.MULTILINE)
+        if not type_match or type_match.group(1) != "source":
+            continue
+
         title_match = re.search(r'^title:\s*["\']?(.+?)["\']?\s*$', content, re.MULTILINE)
         fm_title = title_match.group(1).strip().lower() if title_match else ""
 
+        slug = p.stem.lower().replace("-", " ").replace("_", " ")
         if slug not in logged_titles and fm_title not in logged_titles:
             try:
                 rel_path = p.relative_to(wiki_dir)
@@ -348,8 +348,10 @@ if __name__ == "__main__":
         print(report)
 
         if args.save:
-            # Save to wiki directory
-            wiki_dir = WIKI_ROOT if WIKI_ROOT.exists() else REPO_ROOT
-            report_path = wiki_dir / "health-report.md"
-            report_path.write_text(report, encoding="utf-8")
-            print(f"\nSaved: {report_path}")
+            # Save to the first KB's wiki directory
+            if kb_list:
+                first_kb = kb_list[0]
+                wiki_dir = get_wiki_dir(first_kb)
+                report_path = wiki_dir / "health-report.md"
+                report_path.write_text(report, encoding="utf-8")
+                print(f"\nSaved: {report_path}")

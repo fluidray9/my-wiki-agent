@@ -9,18 +9,15 @@ description: "检查 wiki 内容质量问题并自动修复（发现孤立页面
 
 ## KB 参数规则
 
-- `--kb KB_NAME`：指定知识库
-- **不指定 `--kb`**：检查所有知识库
+- `--kb KB_NAME`：指定知识库（对应 `knowledge-base/{kb}/` 目录）
+- **不指定 `--kb`**：使用默认布局（`wiki/` 目录），向后兼容
 
 ## 命令行用法
 
 ```bash
 # Lint 检查（指定 KB）
 python scripts/lint.py --kb deepseek-kb
-python scripts/lint.py --kb deepseek-kb --save        # 保存报告到 wiki/lint-report.md
-
-# Lint 检查（所有 KB）
-python scripts/lint.py
+python scripts/lint.py --kb deepseek-kb --save        # 保存报告到 KB 的 wiki/lint-report.md
 
 # Heal 修复（指定 KB）
 python scripts/heal.py --kb deepseek-kb
@@ -34,6 +31,7 @@ python scripts/heal.py --kb deepseek-kb
 | 孤立页面 | `find_orphans()` |
 | 断链 | `find_broken_links()` |
 | 缺失 entity | `find_missing_entities()` |
+| 稀疏页面 | `check_link_density()` |
 | Hub 残缺 | `check_hub_stubs()` |
 | 脆弱桥接 | `check_fragile_bridges()` |
 | 孤立社区 | `check_isolated_communities()` |
