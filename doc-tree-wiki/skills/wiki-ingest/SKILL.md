@@ -5,7 +5,45 @@ description: "摄入源文档到知识库 wiki，生成 source/entity/concept �
 
 # Wiki Ingest
 
-摄入源文档到知识库的 LLM Wiki。**Agent 手动执行所有步骤**，脚本只负责文件读写。
+摄入源文档到知识库的 LLM Wiki。
+
+## KB 目录结构
+
+```
+knowledge-base/{kb}/
+├── kb-meta.json          # KB 元数据（脚本自动创建）
+├── raw/                  # 原始文档（脚本复制文件到这里）
+│   └── ...               # 保持源文件夹结构
+└── wiki/
+    ├── index.md          # 页面索引
+    ├── overview.md       # 概览
+    ├── log.md            # 操作日志
+    ├── sources/          # 源页面
+    ├── entities/         # 实体页面
+    ├── concepts/         # 概念页面
+    └── syntheses/        # 综合页面
+```
+
+> **目录创建**：脚本运行时自动创建所需目录（`raw/`、`wiki/sources/` 等），无需 Agent 介入。
+
+## 职责分工
+
+**Agent（Claude）负责**：
+- 读取源文档内容，理解文档主题和结构
+- 检测图片引用，解析图片内容
+- 检测矛盾（如与现有 wiki 内容冲突）
+- 生成 source/entity/concept 页面的 markdown 内容
+- 在 wiki 页面中包含图片内容描述
+- 调用 `save_*_page()` 写入文件
+- 更新 index.md 添加条目
+- 追加到 log.md: `## [YYYY-MM-DD] ingest | <Title>`
+- 调用 wiki-graph 构建/更新图谱
+
+**脚本自动处理**：
+- 创建 KB 目录结构
+- 复制源文件到 `knowledge-base/{kb}/raw/`（保留文件夹结构）
+- 写入生成的页面文件
+- 更新 index.md 和 log.md
 
 ## KB 参数规则
 
@@ -21,6 +59,8 @@ description: "摄入源文档到知识库 wiki，生成 source/entity/concept �
 5. **Agent 更新索引** — 更新 `knowledge-base/{kb}/wiki/index.md`, `wiki/overview.md`, `wiki/log.md`
 
 ## 脚本函数（Claude 调用）
+
+> 注意：脚本复制文件到 raw/ 目录，**原始文件保留在原位置**，不会移动。
 
 ```python
 # 写入源页面
@@ -51,20 +91,6 @@ python scripts/ingest.py raw/deepseek-kb/*.md --kb deepseek-kb
 # 验证现有 wiki（断链、未索引检查）
 python scripts/ingest.py --validate-only --kb deepseek-kb
 ```
-
-## Claude 职责（Agent-Delegation 架构）
-
-- 读取源文档内容
-- **检测图片引用**：markdown 中 `![](path/to/image.png)` 等引用
-- **解析图片内容**：读取图片文件，用 LLM 理解图片内容（图像描述/OCR）
-- 检测矛盾（如与现有 wiki 内容冲突）
-- 生成页面 markdown（包含完整 frontmatter: title, type, tags, sources, last_updated）
-- 在 wiki 页面中包含图片内容描述
-- 在 tree-index 中标注图片来源
-- 调用 `save_*_page()` 写入文件
-- 更新 index.md 添加条目
-- 追加到 log.md: `## [YYYY-MM-DD] ingest | <Title>`
-- **调用 wiki-graph 构建/更新图谱**
 
 ## 图片处理流程
 
