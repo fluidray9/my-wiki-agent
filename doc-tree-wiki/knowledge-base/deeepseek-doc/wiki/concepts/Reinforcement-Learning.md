@@ -1,31 +1,25 @@
 ---
-title: "Reinforcement Learning"
+title: Reinforcement Learning
 type: concept
-tags:
-  - machine-learning
-  - training-method
-sources:
-  - sources/deepseek-r1-overview.md
-last_updated: 2026-04-21
+tags: [强化学习, AI训练, 推理]
+sources: [raw/deeepseek-doc/deepseek-r1-overview.md]
+last_updated: 2026-04-22
 ---
 
-# Reinforcement Learning (强化学习)
+# Reinforcement Learning（强化学习）
 
-强化学习是机器学习的一个重要分支，模型通过与环境交互，以试错方式学习最优策略。DeepSeek-R1 采用纯强化学习（GRPO）作为核心训练方法，证明了无需大量监督数据也能训练出顶尖推理模型。
+**强化学习（RL）** 是 DeepSeek-R1 的核心训练方法，让模型通过与环境交互、自我试错来学习最优策略，而非依赖大量人工标注的监督数据。
 
-## 核心概念
+## GRPO
 
-- **Agent（智能体）**：模型本身
-- **Environment（环境）**：模型所处的任务环境
-- **Policy（策略）**：模型做出决策的方式
-- **Reward（奖励）**：衡量动作好坏的目标
+DeepSeek-R1 使用 **GRPO**（Group Relative Policy Optimization）作为具体训练方法。
 
-## 在 LLM 训练中的应用
+## 在 DeepSeek-R1 中的应用
 
-- **传统方法**：使用大量人工标注的监督数据进行 SFT（Supervised Fine-Tuning）
-- **RL 方法**：如 GRPO，通过奖励信号让模型自我学习推理策略
+- 纯强化学习训练，无需监督微调
+- 模型通过自我进化习得推理策略
+- 综合性能与 OpenAI o1 持平
 
-## 相关链接
+## 相关模型
 
-- [DeepSeek-R1](entities/DeepSeek-R1.md)
-- [GRPO](concepts/GRPO.md)
+- [[DeepSeek-R1]] — 使用强化学习训练

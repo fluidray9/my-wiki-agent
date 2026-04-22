@@ -48,30 +48,42 @@ def write_file(path: Path, content: str):
 
 
 def copy_source_to_raw(source_path: str, kb_name: str) -> list[str]:
-    """Copy source files to knowledge-base/{kb}/raw/. Skip if already exists.
+    """Copy source files to knowledge-base/{kb}/raw/. Preserve folder structure.
 
-    Returns list of copied file paths.
+    - Single file: copy directly to dst_dir/
+    - Folder: copy entire folder structure to dst_dir/{folder_name}/
+
+    Returns list of copied items.
     """
     src = Path(source_path)
     dst_dir = KB_DIR / kb_name / "raw"
     dst_dir.mkdir(parents=True, exist_ok=True)
 
     copied = []
-    paths_to_copy = []
 
     if src.is_file():
-        paths_to_copy = [src]
-    elif src.is_dir():
-        paths_to_copy = list(src.rglob("*.md"))
-
-    for src_file in paths_to_copy:
-        dst_file = dst_dir / src_file.name
+        # Single file: copy directly
+        dst_file = dst_dir / src.name
         if dst_file.exists():
             print(f"  skip (exists): {dst_file.relative_to(KB_DIR)}")
         else:
-            shutil.copy2(src_file, dst_file)
-            print(f"  copied: {src_file.name} -> {dst_file.relative_to(KB_DIR)}")
-            copied.append(src_file.name)
+            shutil.copy2(src, dst_file)
+            print(f"  copied: {src.name} -> {dst_file.relative_to(KB_DIR)}")
+            copied.append(src.name)
+
+    elif src.is_dir():
+        # Folder: preserve structure, copy to dst_dir/{src.name}/
+        for item in src.rglob("*"):
+            if item.is_file():
+                rel_path = item.relative_to(src)
+                dst_path = dst_dir / src.name / rel_path
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
+                if dst_path.exists():
+                    print(f"  skip (exists): {dst_path.relative_to(KB_DIR)}")
+                else:
+                    shutil.copy2(item, dst_path)
+                    print(f"  copied: {src.name}/{rel_path} -> {dst_path.relative_to(KB_DIR)}")
+                    copied.append(f"{src.name}/{rel_path}")
 
     return copied
 

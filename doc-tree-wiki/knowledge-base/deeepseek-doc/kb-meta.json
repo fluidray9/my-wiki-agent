@@ -1,5 +1,6 @@
 {
   "name": "deeepseek-doc",
-  "description": "Knowledge base: deeepseek-doc",
-  "created": "2026-04-21"
+  "description": "DeepSeek-R1 模型介绍文档",
+  "created": "2026-04-22",
+  "source_pattern": "raw/deeepseek-doc/*.md"
 }

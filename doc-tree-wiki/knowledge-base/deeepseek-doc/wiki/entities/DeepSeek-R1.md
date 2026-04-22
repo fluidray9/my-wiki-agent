@@ -1,18 +1,14 @@
 ---
-title: "DeepSeek-R1"
+title: DeepSeek-R1
 type: entity
-tags:
-  - model
-  - reasoning
-  - LLM
-sources:
-  - sources/deepseek-r1-overview.md
-last_updated: 2026-04-21
+tags: [模型, 推理, 开源, MoE]
+sources: [raw/deeepseek-doc/deepseek-r1-overview.md]
+last_updated: 2026-04-22
 ---
 
 # DeepSeek-R1
 
-DeepSeek-R1 是一款专注于**推理能力**的大语言模型，由中国人工智能公司 DeepSeek 开发。它以强化学习（RL）为核心训练方法，让模型通过自我进化习得推理策略，而非依赖大量人工标注的监督数据。
+**DeepSeek-R1** 是一款专注于**推理能力**的大语言模型，由 DeepSeek 开发。2025 年 1 月 20 日发布，以 MIT 许可证开源，综合性能与 OpenAI o1 相当。
 
 ## 核心参数
 
@@ -20,27 +16,47 @@ DeepSeek-R1 是一款专注于**推理能力**的大语言模型，由中国人�
 |------|------|
 | 总参数量 | 671B |
 | 推理时激活参数 | 37B（MoE 架构） |
-| 上下文长度 | 64K tokens（原版）|
+| 架构 | Mixture of Experts（MoE） |
+| 训练方法 | GRPO（纯强化学习） |
+| 上下文长度 | 64K tokens |
 | 知识截止日期 | 2024 年 7 月 |
-| 发布时间 | 2025 年 1 月 20 日 |
-| 许可证 | MIT |
 
-## 性能表现
+## 能力表现
 
-- **数学**：AIME 数学竞赛 pass@1 约 **79.8%**，MATH-500 约 **97.3%**
-- **代码**：Codeforces Elo 约 **2029**
-- **综合推理**：与 OpenAI o1 持平
+- **数学**：AIME pass@1 约 79.8%，MATH-500 约 97.3%
+- **代码**：Codeforces Elo 约 2029
+- **推理**：与 OpenAI o1 持平
+- **显式思维链**：输出包含完整推理过程
 
-## 版本演进
+## 蒸馏版本
 
-| 时间 | 版本 | 主要变化 |
-|------|------|---------|
-| 2025-01 | R1（原版）| 首发，纯 RL 推理模型 |
-| 2025-05 | R1-0528 | 推理质量大幅提升，新增结构化 JSON 输出、函数调用 |
+| 模型 | 基础架构 |
+|------|---------|
+| R1-Distill-Qwen-1.5B | Qwen2.5 |
+| R1-Distill-Qwen-7B | Qwen2.5 |
+| R1-Distill-Qwen-14B | Qwen2.5 |
+| R1-Distill-Qwen-32B | Qwen2.5 |
+| R1-Distill-Llama-8B | LLaMA-3 |
+| R1-Distill-Llama-70B | LLaMA-3 |
+
+## 成本优势
+
+API 调用成本约为 OpenAI o1 的 **15%–50%**。
+
+## 局限性
+
+- 不支持多模态输入（纯文本模型）
+- 上下文窗口 64K
+- 数据隐私与合规顾虑（敏感领域）
+- 部分地区访问受限
+
+## 相关实体
+
+- [[DeepSeek]] — 开发公司
 
 ## 相关概念
 
-- [DeepSeek](entities/DeepSeek.md)
-- [MoE](concepts/MoE.md)
-- [GRPO](concepts/GRPO.md)
-- [Knowledge Distillation](concepts/Knowledge-Distillation.md)
+- [[MoE]] — 架构基础
+- [[GRPO]] — 训练方法
+- [[Knowledge-Distillation]] — 蒸馏技术
+- [[Reinforcement-Learning]] — 强化学习

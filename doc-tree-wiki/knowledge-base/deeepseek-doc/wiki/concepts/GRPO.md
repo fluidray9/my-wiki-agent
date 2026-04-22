@@ -1,35 +1,26 @@
 ---
-title: "GRPO (Group Relative Policy Optimization)"
+title: GRPO
 type: concept
-tags:
-  - training
-  - reinforcement-learning
-  - optimization
-sources:
-  - sources/deepseek-r1-overview.md
-last_updated: 2026-04-21
+tags: [训练方法, 强化学习, 推理]
+sources: [raw/deeepseek-doc/deepseek-r1-overview.md]
+last_updated: 2026-04-22
 ---
 
-# GRPO (Group Relative Policy Optimization)
+# GRPO（Group Relative Policy Optimization）
 
-GRPO 是 DeepSeek-R1 使用的核心训练方法，全称为 Group Relative Policy Optimization。它是一种纯强化学习方法，让模型通过自我进化习得推理策略，而非依赖大量人工标注的监督数据。
+**GRPO** 是 DeepSeek-R1 使用的训练方法，全称 Group Relative Policy Optimization，属于纯强化学习方法，让模型通过自我进化习得推理策略，而非依赖大量人工标注的监督数据。
 
 ## 核心思想
 
-- **无需监督数据**：传统 LLM 依赖大量人工标注的 training data，GRPO 完全通过强化学习训练
-- **自我进化**：模型通过试错学习推理策略
-- **相对比较**：使用组内相对比较来优化策略
+- 无需大量人工标注的监督数据
+- 通过相对比较（group relative）优化策略
+- 模型自我进化习得推理能力
 
-## 与传统方法对比
+## 相关模型
 
-| 方面 | 传统 SFT | GRPO |
-|------|---------|------|
-| 数据需求 | 大量人工标注 | 无需标注 |
-| 训练方式 | 监督学习 | 强化学习 |
-| 推理能力 | 一般 | 强 |
-| 成本 | 高 | 较低 |
+- [[DeepSeek-R1]] — 使用 GRPO 训练
 
-## 相关链接
+## 相关概念
 
-- [DeepSeek-R1](entities/DeepSeek-R1.md)
-- [Reinforcement Learning](concepts/Reinforcement-Learning.md)
+- [[Reinforcement-Learning]] — 强化学习
+- [[Knowledge-Distillation]] — 知识蒸馏

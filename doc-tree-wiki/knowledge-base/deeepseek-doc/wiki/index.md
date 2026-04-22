@@ -1,19 +1,14 @@
-# Wiki Index
+# DeepSeek Wiki
 
-## Overview
-- [Overview](overview.md) — living synthesis
+> 本 Wiki 由 AI 自动生成，内容可能存在错误，请以源文档为准。
 
-## Sources
-- [deepseek-r1-overview](sources/deepseek-r1-overview.md)
+## 目录
 
-## Entities
-- [DeepSeek](entities/DeepSeek.md)
-- [DeepSeek-R1](entities/DeepSeek-R1.md)
+- [Overview](overview.md)
+- [实体](entities/index.md)
+- [概念](concepts/index.md)
+- [来源](sources/index.md)
 
-## Concepts
-- [MoE](concepts/MoE.md)
-- [GRPO](concepts/GRPO.md)
-- [Reinforcement Learning](concepts/Reinforcement-Learning.md)
-- [Knowledge Distillation](concepts/Knowledge-Distillation.md)
+## 最新更新
 
-## Syntheses
+- 2026-04-22: 初始 ingest，DeepSeek-R1 全面介绍

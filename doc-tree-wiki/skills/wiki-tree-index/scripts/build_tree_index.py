@@ -22,6 +22,25 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+def extract_image_references(content: str) -> list[dict]:
+    """Extract image references from markdown content.
+
+    Returns:
+        [{"alt": "alt text", "path": "img/foo.png", "line": 5}, ...]
+    """
+    results = []
+    pattern = r'!\[([^\]]*)\]\(([^)]+\.(?:png|jpg|jpeg|gif|webp))\)'
+    for i, line in enumerate(content.split('\n'), 1):
+        matches = re.findall(pattern, line)
+        for alt, path in matches:
+            results.append({
+                "alt": alt,
+                "path": path,
+                "line": i
+            })
+    return results
+
+
 def extract_document_structure(file_path: Path, kb_name: str) -> dict:
     """Parse a document, extract headers and paragraphs with positions.
 
@@ -90,6 +109,18 @@ def extract_document_structure(file_path: Path, kb_name: str) -> dict:
         text = ' '.join(current_para)
         char_end = para_start + len(text)
         result["paragraphs"].append((para_start, char_end, text))
+
+    # Extract image references and add as special paragraphs
+    images = extract_image_references(content)
+    for img in images:
+        # Calculate position (use line number approximation)
+        lines_before = content[:content.find('\n' * (img["line"] - 1))] if img["line"] > 1 else ""
+        char_start = len(lines_before) + img["line"] - 1
+        char_end = char_start + len(img["path"])
+
+        # Create special paragraph for image (LLM will fill in content)
+        img_para = f"[图片] {img['alt']}: {{LLM需解析图片: {img['path']}}}"
+        result["paragraphs"].append((char_start, char_end, img_para))
 
     return result
 

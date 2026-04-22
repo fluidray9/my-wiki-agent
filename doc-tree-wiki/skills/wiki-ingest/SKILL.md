@@ -55,12 +55,33 @@ python scripts/ingest.py --validate-only --kb deepseek-kb
 ## Claude 职责（Agent-Delegation 架构）
 
 - 读取源文档内容
+- **检测图片引用**：markdown 中 `![](path/to/image.png)` 等引用
+- **解析图片内容**：读取图片文件，用 LLM 理解图片内容（图像描述/OCR）
 - 检测矛盾（如与现有 wiki 内容冲突）
 - 生成页面 markdown（包含完整 frontmatter: title, type, tags, sources, last_updated）
+- 在 wiki 页面中包含图片内容描述
+- 在 tree-index 中标注图片来源
 - 调用 `save_*_page()` 写入文件
 - 更新 index.md 添加条目
 - 追加到 log.md: `## [YYYY-MM-DD] ingest | <Title>`
 - **调用 wiki-graph 构建/更新图谱**
+
+## 图片处理流程
+
+1. 读取 markdown 文件时，检测图片引用：
+   ```markdown
+   ![alt text](img/screenshot.png)
+   ```
+2. 解析图片路径（相对于 markdown 文件位置）
+3. 读取图片文件内容
+4. 用 LLM 解析图片内容（如：图像描述、OCR 文字等）
+5. 在生成的 wiki 页面中包含图片内容描述
+6. 在 tree-index 中，图片节点标记为 `keywords: ["图片", ...]`
+
+## source_file frontmatter
+
+- 指向 markdown 文件本身（如 `raw/raw2/raw2.md`）
+- 图片是 markdown 引用的内容，不是独立源文档
 
 ## 输出摘要
 
